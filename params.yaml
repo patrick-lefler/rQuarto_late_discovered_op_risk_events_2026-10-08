@@ -1,0 +1,86 @@
+# Single source of truth for all simulator parameters.
+# status: "assumption" = chosen for plausibility, not calibrated to data.
+# Every value is synthetic; replace with client data in a real engagement.
+master_seed: 20261009
+
+firm:
+  aum_usd: 5.0e+9        # stylised mid-size buy-side firm; used only to express losses in bps of AUM
+  status: assumption
+
+horizon:
+  n_origin: 40          # origin quarters (10 years); evaluation date = end of quarter 40
+  n_lag: 40             # discovery lags 0..39 inside the window; lag >= 40 is "tail"
+  status: assumption
+
+exposure:
+  base: 1.0
+  growth_per_quarter: 0.01   # ~4% p.a. volume growth; range 0 - 0.03
+  status: assumption
+
+replication:
+  n_reps: 200
+  n_boot: 1000          # BootChainLadder resamples per triangle
+  runs:                 # scenario -> granularities scored (annual = 4 quarters per period)
+    baseline: [annual, quarterly]
+    heavy_tail_shock: [annual]
+    control_improvement: [annual]
+    exposure_growth: [annual]
+  recent_quarters: 4    # "recent" = latest 4 origin quarters (1 annual period)
+  status: assumption
+
+mlreserve:              # experimental comparator, see mlreserve.qmd
+  n_reps: 30
+  commit: 30cc7a8402f29713d3f53861e42b092cbc6946f1   # thierrymoudiki/ChainLadder (fork of mages/ChainLadder)
+  configs:              # blog setting first; the rest are variants incl. the package default (factor features), all scored on the same replications
+    rf_asinh_numeric: {learner: ranger, features: numeric, transform: asinh}
+    rf_raw_numeric: {learner: ranger, features: numeric, transform: none}
+    rf_raw_both: {learner: ranger, features: both, transform: none}
+    rf_raw_factor: {learner: ranger, features: factor, transform: none}      # package default features
+    svm_raw_numeric: {learner: svm, features: numeric, transform: none}
+    svm_raw_factor: {learner: svm, features: factor, transform: none}
+  status: assumption
+
+controls:               # detection controls; effects are applied as shifts to the lag distribution
+  recon_automation:
+    description: Automated daily position/cash reconciliation against prime-broker statements
+    annual_cost_usd: 400000          # assumption; range 250k - 600k
+    lag_shift:
+      nav_error: {slow_meanlog: -0.4, w_fast: 0.10}
+      unauthorized_trading: {slow_meanlog: -0.4}
+    status: assumption
+  independent_pnl_verification:
+    description: Independent P&L and limit-breach verification with prime-broker position feed
+    annual_cost_usd: 700000          # assumption; range 400k - 1.2M
+    lag_shift:
+      trade_error: {w_fast: 0.05}
+      nav_error: {slow_meanlog: -0.3}
+      unauthorized_trading: {slow_meanlog: -0.8, w_fast: 0.15}
+    status: assumption
+
+event_types:
+  trade_error:                       # Basel: Execution, Delivery & Process Mgmt
+    lambda: 60                       # events / quarter at exposure 1; range 30 - 120
+    lag: {w_fast: 0.85, p_fast: 0.80, slow_meanlog: 0.5, slow_sdlog: 0.8}
+    severity: {meanlog: 7.8, sdlog: 1.2, p_tail: 0.03, tail_q: 0.95, xi: 0.2, beta: 8000, lag_elasticity: 0.02}
+    status: assumption
+  nav_error:                         # Basel: EDPM / Clients, Products & Business Practices
+    lambda: 6                        # range 3 - 15
+    lag: {w_fast: 0.50, p_fast: 0.40, slow_meanlog: 1.5, slow_sdlog: 0.8}
+    severity: {meanlog: 10.3, sdlog: 1.4, p_tail: 0.05, tail_q: 0.95, xi: 0.3, beta: 80000, lag_elasticity: 0.05}
+    status: assumption
+  unauthorized_trading:              # Basel: Internal Fraud (incl. limit and mandate breaches)
+    lambda: 0.3                      # ~1.2 per year; range 0.1 - 0.8
+    lag: {w_fast: 0.10, p_fast: 0.30, slow_meanlog: 2.0, slow_sdlog: 0.9}
+    severity: {meanlog: 12.4, sdlog: 1.6, p_tail: 0.08, tail_q: 0.90, xi: 0.6, beta: 1500000, lag_elasticity: 0.08}
+    status: assumption
+
+scenarios:
+  baseline: {}
+  heavy_tail_shock:
+    injected_events:                 # absolute-dollar events added to the baseline
+      - {type: unauthorized_trading, origin: 12, lag: 15, severity: 60000000}
+      - {type: unauthorized_trading, origin: 20, lag: 22, severity: 40000000}
+  control_improvement:
+    control_shift: {calendar_quarter: 24, reduction: 0.5}   # remaining time-to-discovery halves after Q24
+  exposure_growth:
+    exposure: {growth_per_quarter: 0.03}

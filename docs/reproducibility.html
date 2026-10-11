@@ -1,0 +1,2401 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.26">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Reproducibility and Limitations – Late-Discovered Operational Risk Events</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-587c61ba64f3a5504c4d52d930310e48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-5b4ad623e5705c0698d39aec6f10cf02.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">Late-Discovered Operational Risk Events</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="./index.html"> 
+<span class="menu-text">Overview</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./data.html"> 
+<span class="menu-text">Synthetic Data</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./results.html"> 
+<span class="menu-text">Results</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./controls.html"> 
+<span class="menu-text">Control Value</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link active" href="./reproducibility.html" aria-current="page"> 
+<span class="menu-text">Reproducibility &amp; Limitations</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#one-command" id="toc-one-command" class="nav-link active" data-scroll-target="#one-command">One command</a></li>
+  <li><a href="#environment" id="toc-environment" class="nav-link" data-scroll-target="#environment">Environment</a></li>
+  <li><a href="#randomness" id="toc-randomness" class="nav-link" data-scroll-target="#randomness">Randomness</a></li>
+  <li><a href="#parameters" id="toc-parameters" class="nav-link" data-scroll-target="#parameters">Parameters</a></li>
+  <li><a href="#data-lineage" id="toc-data-lineage" class="nav-link" data-scroll-target="#data-lineage">Data lineage</a></li>
+  <li><a href="#tests" id="toc-tests" class="nav-link" data-scroll-target="#tests">Tests</a></li>
+  <li><a href="#caching-and-runtime" id="toc-caching-and-runtime" class="nav-link" data-scroll-target="#caching-and-runtime">Caching and runtime</a></li>
+  <li><a href="#known-limits-of-reproducibility" id="toc-known-limits-of-reproducibility" class="nav-link" data-scroll-target="#known-limits-of-reproducibility">Known limits of reproducibility</a></li>
+  <li><a href="#sec-limitations" id="toc-sec-limitations" class="nav-link" data-scroll-target="#sec-limitations">Limitations and model risk</a>
+  <ul class="collapse">
+  <li><a href="#key-limitations" id="toc-key-limitations" class="nav-link" data-scroll-target="#key-limitations">Key limitations</a></li>
+  <li><a href="#what-would-change-the-conclusions" id="toc-what-would-change-the-conclusions" class="nav-link" data-scroll-target="#what-would-change-the-conclusions">What would change the conclusions</a></li>
+  <li><a href="#what-client-data-would-replace-each-assumption" id="toc-what-client-data-would-replace-each-assumption" class="nav-link" data-scroll-target="#what-client-data-would-replace-each-assumption">What client data would replace each assumption</a></li>
+  <li><a href="#use-of-the-results" id="toc-use-of-the-results" class="nav-link" data-scroll-target="#use-of-the-results">Use of the results</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Reproducibility and Limitations</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>This page documents how to rebuild every number on the site, and checks a few of those claims live each time it is rendered.</p>
+<section id="one-command" class="level2">
+<h2 class="anchored" data-anchor-id="one-command">One command</h2>
+<p>From a clean clone:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">'renv::restore()'</span>   <span class="co"># once: package versions from renv.lock</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">Rscript</span> run_all.R               <span class="co"># simulations -&gt; mlReserve experiment -&gt; site in docs/</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><code>run_all.R</code> runs <code>run_simulations.R</code> (replications, control study, break-even), installs the pinned <code>mlReserve</code> fork into an isolated library if needed and runs <code>run_mlreserve.R</code>, then calls <code>quarto render</code>.</p>
+</section>
+<section id="environment" class="level2">
+<h2 class="anchored" data-anchor-id="environment">Environment</h2>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tibble</span>(</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">Item =</span> <span class="fu">c</span>(<span class="st">"R"</span>, <span class="st">"Platform"</span>, <span class="st">"ChainLadder (CRAN, used for all headline results)"</span>, <span class="st">"mlReserve fork (isolated library)"</span>, <span class="st">"Fork commit"</span>, <span class="st">"Quarto"</span>),</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">Value =</span> <span class="fu">c</span>(R.version.string, R.version<span class="sc">$</span>platform, <span class="fu">as.character</span>(<span class="fu">packageVersion</span>(<span class="st">"ChainLadder"</span>)),</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>            <span class="fu">readRDS</span>(<span class="st">"data/mlreserve.rds"</span>)<span class="sc">$</span>fork_version, <span class="fu">readRDS</span>(<span class="st">"data/mlreserve.rds"</span>)<span class="sc">$</span>commit,</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>            <span class="fu">trimws</span>(<span class="fu">system2</span>(<span class="st">"quarto"</span>, <span class="st">"--version"</span>, <span class="at">stdout =</span> <span class="cn">TRUE</span>)))</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span> gt<span class="sc">::</span><span class="fu">gt</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div id="wtaxzmrtol" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#wtaxzmrtol table {
+  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#wtaxzmrtol thead, #wtaxzmrtol tbody, #wtaxzmrtol tfoot, #wtaxzmrtol tr, #wtaxzmrtol td, #wtaxzmrtol th {
+  border-style: none;
+}
+
+#wtaxzmrtol p {
+  margin: 0;
+  padding: 0;
+}
+
+#wtaxzmrtol .gt_table {
+  display: table;
+  border-collapse: collapse;
+  line-height: normal;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#wtaxzmrtol .gt_caption {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+#wtaxzmrtol .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#wtaxzmrtol .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 3px;
+  padding-bottom: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#wtaxzmrtol .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#wtaxzmrtol .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#wtaxzmrtol .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#wtaxzmrtol .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#wtaxzmrtol .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#wtaxzmrtol .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#wtaxzmrtol .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#wtaxzmrtol .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#wtaxzmrtol .gt_spanner_row {
+  border-bottom-style: hidden;
+}
+
+#wtaxzmrtol .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  text-align: left;
+}
+
+#wtaxzmrtol .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#wtaxzmrtol .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#wtaxzmrtol .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#wtaxzmrtol .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#wtaxzmrtol .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#wtaxzmrtol .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+#wtaxzmrtol .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+#wtaxzmrtol .gt_row_group_first th {
+  border-top-width: 2px;
+}
+
+#wtaxzmrtol .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#wtaxzmrtol .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #D3D3D3;
+}
+
+#wtaxzmrtol .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+#wtaxzmrtol .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#wtaxzmrtol .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#wtaxzmrtol .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#wtaxzmrtol .gt_last_grand_summary_row_top {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: double;
+  border-bottom-width: 6px;
+  border-bottom-color: #D3D3D3;
+}
+
+#wtaxzmrtol .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#wtaxzmrtol .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#wtaxzmrtol .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#wtaxzmrtol .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#wtaxzmrtol .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#wtaxzmrtol .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#wtaxzmrtol .gt_left {
+  text-align: left;
+}
+
+#wtaxzmrtol .gt_center {
+  text-align: center;
+}
+
+#wtaxzmrtol .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#wtaxzmrtol .gt_font_normal {
+  font-weight: normal;
+}
+
+#wtaxzmrtol .gt_font_bold {
+  font-weight: bold;
+}
+
+#wtaxzmrtol .gt_font_italic {
+  font-style: italic;
+}
+
+#wtaxzmrtol .gt_super {
+  font-size: 65%;
+}
+
+#wtaxzmrtol .gt_footnote_marks {
+  font-size: 75%;
+  vertical-align: 0.4em;
+  position: initial;
+}
+
+#wtaxzmrtol .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+#wtaxzmrtol .gt_indent_1 {
+  text-indent: 5px;
+}
+
+#wtaxzmrtol .gt_indent_2 {
+  text-indent: 10px;
+}
+
+#wtaxzmrtol .gt_indent_3 {
+  text-indent: 15px;
+}
+
+#wtaxzmrtol .gt_indent_4 {
+  text-indent: 20px;
+}
+
+#wtaxzmrtol .gt_indent_5 {
+  text-indent: 25px;
+}
+
+#wtaxzmrtol .katex-display {
+  display: inline-flex !important;
+  margin-bottom: 0.75em !important;
+}
+
+#wtaxzmrtol div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+  height: 0px !important;
+}
+</style>
+
+<table class="gt_table caption-top table table-sm table-striped small" data-quarto-bootstrap="false">
+<thead>
+<tr class="gt_col_headings header">
+<th id="Item" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col">Item</th>
+<th id="Value" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col">Value</th>
+</tr>
+</thead>
+<tbody class="gt_table_body">
+<tr class="odd">
+<td class="gt_row gt_left" headers="Item">R</td>
+<td class="gt_row gt_left" headers="Value">R version 4.5.2 (2025-10-31)</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="Item">Platform</td>
+<td class="gt_row gt_left" headers="Value">aarch64-apple-darwin20</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="Item">ChainLadder (CRAN, used for all headline results)</td>
+<td class="gt_row gt_left" headers="Value">0.2.21</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="Item">mlReserve fork (isolated library)</td>
+<td class="gt_row gt_left" headers="Value">0.2.22</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="Item">Fork commit</td>
+<td class="gt_row gt_left" headers="Value">30cc7a8402f29713d3f53861e42b092cbc6946f1</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="Item">Quarto</td>
+<td class="gt_row gt_left" headers="Value">1.8.26</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>The package versions are pinned in <code>renv.lock</code>. Status of the project library against the lockfile:</p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>No issues found -- the project is in a consistent state.</code></pre>
+</div>
+</div>
+<p>The experimental fork is installed from GitHub at the pinned commit into <code>lib_mlreserve/</code>, outside renv, so installing it cannot change the CRAN ChainLadder version.</p>
+</section>
+<section id="randomness" class="level2">
+<h2 class="anchored" data-anchor-id="randomness">Randomness</h2>
+<p>All randomness is seeded explicitly, so results do not depend on how many cores are used (tested). A master seed in <code>params.yaml</code> (<code>master_seed</code>) generates a seed for every stream:</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>derive_seed</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>function (master_seed, rep, scenario_index, type_index = 0L) 
+{
+    as.integer((master_seed + 1009 * rep + 100003 * scenario_index + 
+        7919 * type_index)%%.Machine$integer.max)
+}</code></pre>
+</div>
+</div>
+<p>Seeds depend on the replication number, the scenario index and the event-type index, so the same replication in different scenarios shares nothing accidentally, and the baseline and control arms of the control study share seeds on purpose (paired comparison). Bootstrap and frequency-severity simulations take a seed derived the same way.</p>
+</section>
+<section id="parameters" class="level2">
+<h2 class="anchored" data-anchor-id="parameters">Parameters</h2>
+<p>Every simulator parameter lives in one file. <code>status: assumption</code> marks values that are plausible choices, not calibrated estimates.</p>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"```yaml</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">paste</span>(<span class="fu">readLines</span>(<span class="st">"params.yaml"</span>), <span class="at">collapse =</span> <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">```</span><span class="sc">\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Single source of truth for all simulator parameters.</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="co"># status: "assumption" = chosen for plausibility, not calibrated to data.</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Every value is synthetic; replace with client data in a real engagement.</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="fu">master_seed</span><span class="kw">:</span><span class="at"> </span><span class="dv">20261009</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="fu">firm</span><span class="kw">:</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">aum_usd</span><span class="kw">:</span><span class="at"> </span><span class="fl">5.0e+9</span><span class="co">        # stylised mid-size buy-side firm; used only to express losses in bps of AUM</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">status</span><span class="kw">:</span><span class="at"> assumption</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="fu">horizon</span><span class="kw">:</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">n_origin</span><span class="kw">:</span><span class="at"> </span><span class="dv">40</span><span class="co">          # origin quarters (10 years); evaluation date = end of quarter 40</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">n_lag</span><span class="kw">:</span><span class="at"> </span><span class="dv">40</span><span class="co">             # discovery lags 0..39 inside the window; lag &gt;= 40 is "tail"</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">status</span><span class="kw">:</span><span class="at"> assumption</span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a><span class="fu">exposure</span><span class="kw">:</span></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">base</span><span class="kw">:</span><span class="at"> </span><span class="fl">1.0</span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">growth_per_quarter</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.01</span><span class="co">   # ~4% p.a. volume growth; range 0 - 0.03</span></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">status</span><span class="kw">:</span><span class="at"> assumption</span></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a><span class="fu">replication</span><span class="kw">:</span></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">n_reps</span><span class="kw">:</span><span class="at"> </span><span class="dv">200</span></span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">n_boot</span><span class="kw">:</span><span class="at"> </span><span class="dv">1000</span><span class="co">          # BootChainLadder resamples per triangle</span></span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">runs</span><span class="kw">:</span><span class="co">                 # scenario -&gt; granularities scored (annual = 4 quarters per period)</span></span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">baseline</span><span class="kw">:</span><span class="at"> </span><span class="kw">[</span><span class="at">annual</span><span class="kw">,</span><span class="at"> quarterly</span><span class="kw">]</span></span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">heavy_tail_shock</span><span class="kw">:</span><span class="at"> </span><span class="kw">[</span><span class="at">annual</span><span class="kw">]</span></span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">control_improvement</span><span class="kw">:</span><span class="at"> </span><span class="kw">[</span><span class="at">annual</span><span class="kw">]</span></span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">exposure_growth</span><span class="kw">:</span><span class="at"> </span><span class="kw">[</span><span class="at">annual</span><span class="kw">]</span></span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">recent_quarters</span><span class="kw">:</span><span class="at"> </span><span class="dv">4</span><span class="co">    # "recent" = latest 4 origin quarters (1 annual period)</span></span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">status</span><span class="kw">:</span><span class="at"> assumption</span></span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a><span class="fu">mlreserve</span><span class="kw">:</span><span class="co">              # experimental comparator, see mlreserve.qmd</span></span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">n_reps</span><span class="kw">:</span><span class="at"> </span><span class="dv">30</span></span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">commit</span><span class="kw">:</span><span class="at"> 30cc7a8402f29713d3f53861e42b092cbc6946f1</span><span class="co">   # thierrymoudiki/ChainLadder (fork of mages/ChainLadder)</span></span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">configs</span><span class="kw">:</span><span class="co">              # blog setting first; the rest are variants incl. the package default (factor features), all scored on the same replications</span></span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">rf_asinh_numeric</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">learner</span><span class="kw">:</span><span class="at"> ranger</span><span class="kw">,</span><span class="at"> </span><span class="fu">features</span><span class="kw">:</span><span class="at"> numeric</span><span class="kw">,</span><span class="at"> </span><span class="fu">transform</span><span class="kw">:</span><span class="at"> asinh</span><span class="kw">}</span></span>
+<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">rf_raw_numeric</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">learner</span><span class="kw">:</span><span class="at"> ranger</span><span class="kw">,</span><span class="at"> </span><span class="fu">features</span><span class="kw">:</span><span class="at"> numeric</span><span class="kw">,</span><span class="at"> </span><span class="fu">transform</span><span class="kw">:</span><span class="at"> none</span><span class="kw">}</span></span>
+<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">rf_raw_both</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">learner</span><span class="kw">:</span><span class="at"> ranger</span><span class="kw">,</span><span class="at"> </span><span class="fu">features</span><span class="kw">:</span><span class="at"> both</span><span class="kw">,</span><span class="at"> </span><span class="fu">transform</span><span class="kw">:</span><span class="at"> none</span><span class="kw">}</span></span>
+<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">rf_raw_factor</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">learner</span><span class="kw">:</span><span class="at"> ranger</span><span class="kw">,</span><span class="at"> </span><span class="fu">features</span><span class="kw">:</span><span class="at"> factor</span><span class="kw">,</span><span class="at"> </span><span class="fu">transform</span><span class="kw">:</span><span class="at"> none</span><span class="kw">}</span><span class="co">      # package default features</span></span>
+<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">svm_raw_numeric</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">learner</span><span class="kw">:</span><span class="at"> svm</span><span class="kw">,</span><span class="at"> </span><span class="fu">features</span><span class="kw">:</span><span class="at"> numeric</span><span class="kw">,</span><span class="at"> </span><span class="fu">transform</span><span class="kw">:</span><span class="at"> none</span><span class="kw">}</span></span>
+<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">svm_raw_factor</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">learner</span><span class="kw">:</span><span class="at"> svm</span><span class="kw">,</span><span class="at"> </span><span class="fu">features</span><span class="kw">:</span><span class="at"> factor</span><span class="kw">,</span><span class="at"> </span><span class="fu">transform</span><span class="kw">:</span><span class="at"> none</span><span class="kw">}</span></span>
+<span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">status</span><span class="kw">:</span><span class="at"> assumption</span></span>
+<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-43"><a href="#cb7-43" aria-hidden="true" tabindex="-1"></a><span class="fu">controls</span><span class="kw">:</span><span class="co">               # detection controls; effects are applied as shifts to the lag distribution</span></span>
+<span id="cb7-44"><a href="#cb7-44" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">recon_automation</span><span class="kw">:</span></span>
+<span id="cb7-45"><a href="#cb7-45" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">description</span><span class="kw">:</span><span class="at"> Automated daily position/cash reconciliation against prime-broker statements</span></span>
+<span id="cb7-46"><a href="#cb7-46" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">annual_cost_usd</span><span class="kw">:</span><span class="at"> </span><span class="dv">400000</span><span class="co">          # assumption; range 250k - 600k</span></span>
+<span id="cb7-47"><a href="#cb7-47" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">lag_shift</span><span class="kw">:</span></span>
+<span id="cb7-48"><a href="#cb7-48" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">nav_error</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">slow_meanlog</span><span class="kw">:</span><span class="at"> </span><span class="fl">-0.4</span><span class="kw">,</span><span class="at"> </span><span class="fu">w_fast</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.10</span><span class="kw">}</span></span>
+<span id="cb7-49"><a href="#cb7-49" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">unauthorized_trading</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">slow_meanlog</span><span class="kw">:</span><span class="at"> </span><span class="fl">-0.4</span><span class="kw">}</span></span>
+<span id="cb7-50"><a href="#cb7-50" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">status</span><span class="kw">:</span><span class="at"> assumption</span></span>
+<span id="cb7-51"><a href="#cb7-51" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">independent_pnl_verification</span><span class="kw">:</span></span>
+<span id="cb7-52"><a href="#cb7-52" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">description</span><span class="kw">:</span><span class="at"> Independent P&amp;L and limit-breach verification with prime-broker position feed</span></span>
+<span id="cb7-53"><a href="#cb7-53" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">annual_cost_usd</span><span class="kw">:</span><span class="at"> </span><span class="dv">700000</span><span class="co">          # assumption; range 400k - 1.2M</span></span>
+<span id="cb7-54"><a href="#cb7-54" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">lag_shift</span><span class="kw">:</span></span>
+<span id="cb7-55"><a href="#cb7-55" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">trade_error</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">w_fast</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.05</span><span class="kw">}</span></span>
+<span id="cb7-56"><a href="#cb7-56" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">nav_error</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">slow_meanlog</span><span class="kw">:</span><span class="at"> </span><span class="fl">-0.3</span><span class="kw">}</span></span>
+<span id="cb7-57"><a href="#cb7-57" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">unauthorized_trading</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">slow_meanlog</span><span class="kw">:</span><span class="at"> </span><span class="fl">-0.8</span><span class="kw">,</span><span class="at"> </span><span class="fu">w_fast</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.15</span><span class="kw">}</span></span>
+<span id="cb7-58"><a href="#cb7-58" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">status</span><span class="kw">:</span><span class="at"> assumption</span></span>
+<span id="cb7-59"><a href="#cb7-59" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-60"><a href="#cb7-60" aria-hidden="true" tabindex="-1"></a><span class="fu">event_types</span><span class="kw">:</span></span>
+<span id="cb7-61"><a href="#cb7-61" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">trade_error</span><span class="kw">:</span><span class="co">                       # Basel: Execution, Delivery &amp; Process Mgmt</span></span>
+<span id="cb7-62"><a href="#cb7-62" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">lambda</span><span class="kw">:</span><span class="at"> </span><span class="dv">60</span><span class="co">                       # events / quarter at exposure 1; range 30 - 120</span></span>
+<span id="cb7-63"><a href="#cb7-63" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">lag</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">w_fast</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.85</span><span class="kw">,</span><span class="at"> </span><span class="fu">p_fast</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.80</span><span class="kw">,</span><span class="at"> </span><span class="fu">slow_meanlog</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.5</span><span class="kw">,</span><span class="at"> </span><span class="fu">slow_sdlog</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.8</span><span class="kw">}</span></span>
+<span id="cb7-64"><a href="#cb7-64" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">severity</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">meanlog</span><span class="kw">:</span><span class="at"> </span><span class="fl">7.8</span><span class="kw">,</span><span class="at"> </span><span class="fu">sdlog</span><span class="kw">:</span><span class="at"> </span><span class="fl">1.2</span><span class="kw">,</span><span class="at"> </span><span class="fu">p_tail</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.03</span><span class="kw">,</span><span class="at"> </span><span class="fu">tail_q</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.95</span><span class="kw">,</span><span class="at"> </span><span class="fu">xi</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.2</span><span class="kw">,</span><span class="at"> </span><span class="fu">beta</span><span class="kw">:</span><span class="at"> </span><span class="dv">8000</span><span class="kw">,</span><span class="at"> </span><span class="fu">lag_elasticity</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.02</span><span class="kw">}</span></span>
+<span id="cb7-65"><a href="#cb7-65" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">status</span><span class="kw">:</span><span class="at"> assumption</span></span>
+<span id="cb7-66"><a href="#cb7-66" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">nav_error</span><span class="kw">:</span><span class="co">                         # Basel: EDPM / Clients, Products &amp; Business Practices</span></span>
+<span id="cb7-67"><a href="#cb7-67" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">lambda</span><span class="kw">:</span><span class="at"> </span><span class="dv">6</span><span class="co">                        # range 3 - 15</span></span>
+<span id="cb7-68"><a href="#cb7-68" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">lag</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">w_fast</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.50</span><span class="kw">,</span><span class="at"> </span><span class="fu">p_fast</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.40</span><span class="kw">,</span><span class="at"> </span><span class="fu">slow_meanlog</span><span class="kw">:</span><span class="at"> </span><span class="fl">1.5</span><span class="kw">,</span><span class="at"> </span><span class="fu">slow_sdlog</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.8</span><span class="kw">}</span></span>
+<span id="cb7-69"><a href="#cb7-69" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">severity</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">meanlog</span><span class="kw">:</span><span class="at"> </span><span class="fl">10.3</span><span class="kw">,</span><span class="at"> </span><span class="fu">sdlog</span><span class="kw">:</span><span class="at"> </span><span class="fl">1.4</span><span class="kw">,</span><span class="at"> </span><span class="fu">p_tail</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.05</span><span class="kw">,</span><span class="at"> </span><span class="fu">tail_q</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.95</span><span class="kw">,</span><span class="at"> </span><span class="fu">xi</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.3</span><span class="kw">,</span><span class="at"> </span><span class="fu">beta</span><span class="kw">:</span><span class="at"> </span><span class="dv">80000</span><span class="kw">,</span><span class="at"> </span><span class="fu">lag_elasticity</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.05</span><span class="kw">}</span></span>
+<span id="cb7-70"><a href="#cb7-70" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">status</span><span class="kw">:</span><span class="at"> assumption</span></span>
+<span id="cb7-71"><a href="#cb7-71" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">unauthorized_trading</span><span class="kw">:</span><span class="co">              # Basel: Internal Fraud (incl. limit and mandate breaches)</span></span>
+<span id="cb7-72"><a href="#cb7-72" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">lambda</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.3</span><span class="co">                      # ~1.2 per year; range 0.1 - 0.8</span></span>
+<span id="cb7-73"><a href="#cb7-73" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">lag</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">w_fast</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.10</span><span class="kw">,</span><span class="at"> </span><span class="fu">p_fast</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.30</span><span class="kw">,</span><span class="at"> </span><span class="fu">slow_meanlog</span><span class="kw">:</span><span class="at"> </span><span class="fl">2.0</span><span class="kw">,</span><span class="at"> </span><span class="fu">slow_sdlog</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.9</span><span class="kw">}</span></span>
+<span id="cb7-74"><a href="#cb7-74" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">severity</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">meanlog</span><span class="kw">:</span><span class="at"> </span><span class="fl">12.4</span><span class="kw">,</span><span class="at"> </span><span class="fu">sdlog</span><span class="kw">:</span><span class="at"> </span><span class="fl">1.6</span><span class="kw">,</span><span class="at"> </span><span class="fu">p_tail</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.08</span><span class="kw">,</span><span class="at"> </span><span class="fu">tail_q</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.90</span><span class="kw">,</span><span class="at"> </span><span class="fu">xi</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.6</span><span class="kw">,</span><span class="at"> </span><span class="fu">beta</span><span class="kw">:</span><span class="at"> </span><span class="dv">1500000</span><span class="kw">,</span><span class="at"> </span><span class="fu">lag_elasticity</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.08</span><span class="kw">}</span></span>
+<span id="cb7-75"><a href="#cb7-75" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">status</span><span class="kw">:</span><span class="at"> assumption</span></span>
+<span id="cb7-76"><a href="#cb7-76" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-77"><a href="#cb7-77" aria-hidden="true" tabindex="-1"></a><span class="fu">scenarios</span><span class="kw">:</span></span>
+<span id="cb7-78"><a href="#cb7-78" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">baseline</span><span class="kw">:</span><span class="at"> </span><span class="kw">{}</span></span>
+<span id="cb7-79"><a href="#cb7-79" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">heavy_tail_shock</span><span class="kw">:</span></span>
+<span id="cb7-80"><a href="#cb7-80" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">injected_events</span><span class="kw">:</span><span class="co">                 # absolute-dollar events added to the baseline</span></span>
+<span id="cb7-81"><a href="#cb7-81" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="kw">{</span><span class="fu">type</span><span class="kw">:</span><span class="at"> unauthorized_trading</span><span class="kw">,</span><span class="at"> </span><span class="fu">origin</span><span class="kw">:</span><span class="at"> </span><span class="dv">12</span><span class="kw">,</span><span class="at"> </span><span class="fu">lag</span><span class="kw">:</span><span class="at"> </span><span class="dv">15</span><span class="kw">,</span><span class="at"> </span><span class="fu">severity</span><span class="kw">:</span><span class="at"> </span><span class="dv">60000000</span><span class="kw">}</span></span>
+<span id="cb7-82"><a href="#cb7-82" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="kw">{</span><span class="fu">type</span><span class="kw">:</span><span class="at"> unauthorized_trading</span><span class="kw">,</span><span class="at"> </span><span class="fu">origin</span><span class="kw">:</span><span class="at"> </span><span class="dv">20</span><span class="kw">,</span><span class="at"> </span><span class="fu">lag</span><span class="kw">:</span><span class="at"> </span><span class="dv">22</span><span class="kw">,</span><span class="at"> </span><span class="fu">severity</span><span class="kw">:</span><span class="at"> </span><span class="dv">40000000</span><span class="kw">}</span></span>
+<span id="cb7-83"><a href="#cb7-83" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">control_improvement</span><span class="kw">:</span></span>
+<span id="cb7-84"><a href="#cb7-84" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">control_shift</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">calendar_quarter</span><span class="kw">:</span><span class="at"> </span><span class="dv">24</span><span class="kw">,</span><span class="at"> </span><span class="fu">reduction</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.5</span><span class="kw">}</span><span class="co">   # remaining time-to-discovery halves after Q24</span></span>
+<span id="cb7-85"><a href="#cb7-85" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">exposure_growth</span><span class="kw">:</span></span>
+<span id="cb7-86"><a href="#cb7-86" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">exposure</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">growth_per_quarter</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.03</span><span class="kw">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>leaf <span class="ot">&lt;-</span> <span class="fu">unlist</span>(yaml<span class="sc">::</span><span class="fu">read_yaml</span>(<span class="st">"params.yaml"</span>))</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>n_leaf <span class="ot">&lt;-</span> <span class="fu">length</span>(leaf)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>n_assump <span class="ot">&lt;-</span> <span class="fu">sum</span>(<span class="fu">grepl</span>(<span class="st">"status$"</span>, <span class="fu">names</span>(leaf)) <span class="sc">&amp;</span> leaf <span class="sc">==</span> <span class="st">"assumption"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<p>The file holds 102 leaf values in 10 blocks marked as assumptions. No parameter is calibrated to data in this version.</p>
+</section>
+<section id="data-lineage" class="level2">
+<h2 class="anchored" data-anchor-id="data-lineage">Data lineage</h2>
+<p>Generated data are outputs, not sources of truth: the generator and <code>params.yaml</code> are. Content hashes (SHA-256 of the deserialised object) let you confirm you reproduced the same results.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>files <span class="ot">&lt;-</span> <span class="fu">list.files</span>(<span class="st">"data"</span>, <span class="at">pattern =</span> <span class="st">"</span><span class="sc">\\</span><span class="st">.rds$"</span>, <span class="at">full.names =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">tibble</span>(<span class="at">File =</span> <span class="fu">basename</span>(files), <span class="st">`</span><span class="at">SHA-256 of content</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">map_chr</span>(files, \(f) <span class="fu">substr</span>(digest<span class="sc">::</span><span class="fu">digest</span>(<span class="fu">readRDS</span>(f), <span class="at">algo =</span> <span class="st">"sha256"</span>), <span class="dv">1</span>, <span class="dv">24</span>)), <span class="at">Rows =</span> <span class="fu">map_chr</span>(files, \(f) {</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  x <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(f)</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">is.data.frame</span>(x)) <span class="fu">as.character</span>(<span class="fu">nrow</span>(x)) <span class="cf">else</span> <span class="st">"-"</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>})) <span class="sc">|&gt;</span> gt<span class="sc">::</span><span class="fu">gt</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div id="krqucfpppd" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#krqucfpppd table {
+  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#krqucfpppd thead, #krqucfpppd tbody, #krqucfpppd tfoot, #krqucfpppd tr, #krqucfpppd td, #krqucfpppd th {
+  border-style: none;
+}
+
+#krqucfpppd p {
+  margin: 0;
+  padding: 0;
+}
+
+#krqucfpppd .gt_table {
+  display: table;
+  border-collapse: collapse;
+  line-height: normal;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#krqucfpppd .gt_caption {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+#krqucfpppd .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#krqucfpppd .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 3px;
+  padding-bottom: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#krqucfpppd .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#krqucfpppd .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#krqucfpppd .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#krqucfpppd .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#krqucfpppd .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#krqucfpppd .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#krqucfpppd .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#krqucfpppd .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#krqucfpppd .gt_spanner_row {
+  border-bottom-style: hidden;
+}
+
+#krqucfpppd .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  text-align: left;
+}
+
+#krqucfpppd .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#krqucfpppd .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#krqucfpppd .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#krqucfpppd .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#krqucfpppd .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#krqucfpppd .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+#krqucfpppd .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+#krqucfpppd .gt_row_group_first th {
+  border-top-width: 2px;
+}
+
+#krqucfpppd .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#krqucfpppd .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #D3D3D3;
+}
+
+#krqucfpppd .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+#krqucfpppd .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#krqucfpppd .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#krqucfpppd .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#krqucfpppd .gt_last_grand_summary_row_top {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: double;
+  border-bottom-width: 6px;
+  border-bottom-color: #D3D3D3;
+}
+
+#krqucfpppd .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#krqucfpppd .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#krqucfpppd .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#krqucfpppd .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#krqucfpppd .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#krqucfpppd .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#krqucfpppd .gt_left {
+  text-align: left;
+}
+
+#krqucfpppd .gt_center {
+  text-align: center;
+}
+
+#krqucfpppd .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#krqucfpppd .gt_font_normal {
+  font-weight: normal;
+}
+
+#krqucfpppd .gt_font_bold {
+  font-weight: bold;
+}
+
+#krqucfpppd .gt_font_italic {
+  font-style: italic;
+}
+
+#krqucfpppd .gt_super {
+  font-size: 65%;
+}
+
+#krqucfpppd .gt_footnote_marks {
+  font-size: 75%;
+  vertical-align: 0.4em;
+  position: initial;
+}
+
+#krqucfpppd .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+#krqucfpppd .gt_indent_1 {
+  text-indent: 5px;
+}
+
+#krqucfpppd .gt_indent_2 {
+  text-indent: 10px;
+}
+
+#krqucfpppd .gt_indent_3 {
+  text-indent: 15px;
+}
+
+#krqucfpppd .gt_indent_4 {
+  text-indent: 20px;
+}
+
+#krqucfpppd .gt_indent_5 {
+  text-indent: 25px;
+}
+
+#krqucfpppd .katex-display {
+  display: inline-flex !important;
+  margin-bottom: 0.75em !important;
+}
+
+#krqucfpppd div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+  height: 0px !important;
+}
+</style>
+
+<table class="gt_table caption-top table table-sm table-striped small" data-quarto-bootstrap="false">
+<thead>
+<tr class="gt_col_headings header">
+<th id="File" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col">File</th>
+<th id="SHA-256-of-content" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col">SHA-256 of content</th>
+<th id="Rows" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Rows</th>
+</tr>
+</thead>
+<tbody class="gt_table_body">
+<tr class="odd">
+<td class="gt_row gt_left" headers="File">control_breakeven.rds</td>
+<td class="gt_row gt_left" headers="SHA-256 of content">58bec95bf3a8c8f430ae97e7</td>
+<td class="gt_row gt_right" headers="Rows">-</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="File">control_study.rds</td>
+<td class="gt_row gt_left" headers="SHA-256 of content">849a0d30b72b496124ebd4ae</td>
+<td class="gt_row gt_right" headers="Rows">-</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="File">mlreserve.rds</td>
+<td class="gt_row gt_left" headers="SHA-256 of content">14e2c8789eaac78b4cd99ef0</td>
+<td class="gt_row gt_right" headers="Rows">-</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="File">replications.rds</td>
+<td class="gt_row gt_left" headers="SHA-256 of content">5daa171b8de07eb426dd3072</td>
+<td class="gt_row gt_right" headers="Rows">39000</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="File">run_meta.rds</td>
+<td class="gt_row gt_left" headers="SHA-256 of content">bbfa2845912463d31c734163</td>
+<td class="gt_row gt_right" headers="Rows">-</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>current_md5 <span class="ot">&lt;-</span> <span class="fu">unname</span>(tools<span class="sc">::</span><span class="fu">md5sum</span>(<span class="st">"params.yaml"</span>))</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>fresh <span class="ot">&lt;-</span> <span class="fu">identical</span>(current_md5, res<span class="sc">$</span>meta<span class="sc">$</span>params_md5)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<p><strong>Staleness check:</strong> <code>params.yaml</code> has not changed since the results were generated (results are current). Results were produced 2026-10-11 14:11:27 UTC with 200 replications on 10 workers.</p>
+</section>
+<section id="tests" class="level2">
+<h2 class="anchored" data-anchor-id="tests">Tests</h2>
+<p>The suite is run each time this page is rendered:</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>tr <span class="ot">&lt;-</span> testthat<span class="sc">::</span><span class="fu">test_dir</span>(<span class="st">"tests/testthat"</span>, <span class="at">reporter =</span> <span class="st">"silent"</span>, <span class="at">stop_on_failure =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>td <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(tr)</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>td <span class="sc">|&gt;</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">Tests =</span> <span class="fu">n</span>(), <span class="at">Expectations =</span> <span class="fu">sum</span>(nb), <span class="at">Failed =</span> <span class="fu">sum</span>(failed), <span class="at">Errors =</span> <span class="fu">sum</span>(error), <span class="at">Warnings =</span> <span class="fu">sum</span>(warning), <span class="at">Skipped =</span> <span class="fu">sum</span>(skipped), <span class="at">.by =</span> file) <span class="sc">|&gt;</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  gt<span class="sc">::</span><span class="fu">gt</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div id="hcrjhppzqf" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#hcrjhppzqf table {
+  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#hcrjhppzqf thead, #hcrjhppzqf tbody, #hcrjhppzqf tfoot, #hcrjhppzqf tr, #hcrjhppzqf td, #hcrjhppzqf th {
+  border-style: none;
+}
+
+#hcrjhppzqf p {
+  margin: 0;
+  padding: 0;
+}
+
+#hcrjhppzqf .gt_table {
+  display: table;
+  border-collapse: collapse;
+  line-height: normal;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#hcrjhppzqf .gt_caption {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+#hcrjhppzqf .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#hcrjhppzqf .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 3px;
+  padding-bottom: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#hcrjhppzqf .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#hcrjhppzqf .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#hcrjhppzqf .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#hcrjhppzqf .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#hcrjhppzqf .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#hcrjhppzqf .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#hcrjhppzqf .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#hcrjhppzqf .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#hcrjhppzqf .gt_spanner_row {
+  border-bottom-style: hidden;
+}
+
+#hcrjhppzqf .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  text-align: left;
+}
+
+#hcrjhppzqf .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#hcrjhppzqf .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#hcrjhppzqf .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#hcrjhppzqf .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#hcrjhppzqf .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#hcrjhppzqf .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+#hcrjhppzqf .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+#hcrjhppzqf .gt_row_group_first th {
+  border-top-width: 2px;
+}
+
+#hcrjhppzqf .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#hcrjhppzqf .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #D3D3D3;
+}
+
+#hcrjhppzqf .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+#hcrjhppzqf .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#hcrjhppzqf .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#hcrjhppzqf .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#hcrjhppzqf .gt_last_grand_summary_row_top {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: double;
+  border-bottom-width: 6px;
+  border-bottom-color: #D3D3D3;
+}
+
+#hcrjhppzqf .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#hcrjhppzqf .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#hcrjhppzqf .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#hcrjhppzqf .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#hcrjhppzqf .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#hcrjhppzqf .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#hcrjhppzqf .gt_left {
+  text-align: left;
+}
+
+#hcrjhppzqf .gt_center {
+  text-align: center;
+}
+
+#hcrjhppzqf .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#hcrjhppzqf .gt_font_normal {
+  font-weight: normal;
+}
+
+#hcrjhppzqf .gt_font_bold {
+  font-weight: bold;
+}
+
+#hcrjhppzqf .gt_font_italic {
+  font-style: italic;
+}
+
+#hcrjhppzqf .gt_super {
+  font-size: 65%;
+}
+
+#hcrjhppzqf .gt_footnote_marks {
+  font-size: 75%;
+  vertical-align: 0.4em;
+  position: initial;
+}
+
+#hcrjhppzqf .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+#hcrjhppzqf .gt_indent_1 {
+  text-indent: 5px;
+}
+
+#hcrjhppzqf .gt_indent_2 {
+  text-indent: 10px;
+}
+
+#hcrjhppzqf .gt_indent_3 {
+  text-indent: 15px;
+}
+
+#hcrjhppzqf .gt_indent_4 {
+  text-indent: 20px;
+}
+
+#hcrjhppzqf .gt_indent_5 {
+  text-indent: 25px;
+}
+
+#hcrjhppzqf .katex-display {
+  display: inline-flex !important;
+  margin-bottom: 0.75em !important;
+}
+
+#hcrjhppzqf div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+  height: 0px !important;
+}
+</style>
+
+<table class="gt_table caption-top table table-sm table-striped small" data-quarto-bootstrap="false">
+<thead>
+<tr class="gt_col_headings header">
+<th id="file" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col">file</th>
+<th id="Tests" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Tests</th>
+<th id="Expectations" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Expectations</th>
+<th id="Failed" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Failed</th>
+<th id="Errors" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Errors</th>
+<th id="Warnings" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Warnings</th>
+<th id="Skipped" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Skipped</th>
+</tr>
+</thead>
+<tbody class="gt_table_body">
+<tr class="odd">
+<td class="gt_row gt_left" headers="file">test-estimators.R</td>
+<td class="gt_row gt_right" headers="Tests">7</td>
+<td class="gt_row gt_right" headers="Expectations">20</td>
+<td class="gt_row gt_right" headers="Failed">0</td>
+<td class="gt_row gt_right" headers="Errors">0</td>
+<td class="gt_row gt_right" headers="Warnings">0</td>
+<td class="gt_row gt_right" headers="Skipped">0</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="file">test-generator.R</td>
+<td class="gt_row gt_right" headers="Tests">7</td>
+<td class="gt_row gt_right" headers="Expectations">12</td>
+<td class="gt_row gt_right" headers="Failed">0</td>
+<td class="gt_row gt_right" headers="Errors">0</td>
+<td class="gt_row gt_right" headers="Warnings">0</td>
+<td class="gt_row gt_right" headers="Skipped">0</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="file">test-score.R</td>
+<td class="gt_row gt_right" headers="Tests">9</td>
+<td class="gt_row gt_right" headers="Expectations">23</td>
+<td class="gt_row gt_right" headers="Failed">0</td>
+<td class="gt_row gt_right" headers="Errors">0</td>
+<td class="gt_row gt_right" headers="Warnings">0</td>
+<td class="gt_row gt_right" headers="Skipped">0</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="file">test-triangles.R</td>
+<td class="gt_row gt_right" headers="Tests">4</td>
+<td class="gt_row gt_right" headers="Expectations">15</td>
+<td class="gt_row gt_right" headers="Failed">0</td>
+<td class="gt_row gt_right" headers="Errors">0</td>
+<td class="gt_row gt_right" headers="Warnings">0</td>
+<td class="gt_row gt_right" headers="Skipped">0</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>What the tests cover:</p>
+<ul>
+<li>Triangle construction reconciles <strong>exactly</strong> to the event-level data (counts and amounts, quarterly and annual) and never leaks undiscovered events into the observed region.</li>
+<li>The generator is deterministic for a seed, rejects invalid parameters, keeps lags non-negative under the control shift and injects shock events exactly.</li>
+<li>Estimators: the in-house chain-ladder matches the package on a dense triangle, tolerates empty development columns, never throws (errors become <code>failed</code>), and sparse triangles are reported as failed or suspect, never as silent zeros.</li>
+<li>Scoring and control functions are checked against hand-computed values.</li>
+<li>A replication run is identical on 1 and 2 cores.</li>
+</ul>
+</section>
+<section id="caching-and-runtime" class="level2">
+<h2 class="anchored" data-anchor-id="caching-and-runtime">Caching and runtime</h2>
+<p>Pages cache their chunk results with Quarto <code>freeze: auto</code>; a page re-executes when its source changes. To force a full rebuild, delete <code>_freeze/</code> and <code>docs/</code>. The heavy computation is not in the pages at all: it is in <code>run_simulations.R</code>, which took 8.3 minutes for the replications and 2 seconds for the control study and break-even on this run.</p>
+</section>
+<section id="known-limits-of-reproducibility" class="level2">
+<h2 class="anchored" data-anchor-id="known-limits-of-reproducibility">Known limits of reproducibility</h2>
+<ul>
+<li>Bit-for-bit equality is expected only on the same platform and package versions. Floating-point and BLAS differences across machines can change low-order digits, and occasionally the optimiser path of the Clark fits.</li>
+<li>The <code>mlReserve</code> fork is a moving target on GitHub; the pinned commit keeps the experiment fixed, but the fork could disappear.</li>
+<li>Quarto and Typst versions affect rendering, not the numbers.</li>
+</ul>
+</section>
+<section id="sec-limitations" class="level2">
+<h2 class="anchored" data-anchor-id="sec-limitations">Limitations and model risk</h2>
+<p>This project tests how estimation methods behave on <strong>data we generated</strong>. That is its strength (the true answer is known) and its main limitation (the answer holds only for this generator).</p>
+<section id="key-limitations" class="level3">
+<h3 class="anchored" data-anchor-id="key-limitations">Key limitations</h3>
+<ol type="1">
+<li><strong>Synthetic, uncalibrated parameters.</strong> Frequencies, lag distributions, severities and control effects are assumptions chosen for plausibility. Different values would change the numbers, and may change which method works.</li>
+<li><strong>The generator and the methods share structure.</strong> Discovery lag is independent of origin period apart from the explicit scenarios, which is close to what chain-ladder assumes. Real loss databases have reporting-policy changes, system migrations and batch back-fills that create calendar-period effects the baseline does not contain.</li>
+<li><strong>Loss is booked in full at discovery.</strong> Real events also have payment and recovery development after discovery. This is a second triangle layer that is not modelled.</li>
+<li><strong>Event types are independent.</strong> In reality a market shock raises trade errors, NAV errors and unauthorized-position losses together.</li>
+<li><strong>Control effects are assumed.</strong> The savings come from a posited link between time undiscovered and loss size, and an assumed shift in the lag distribution. We have no evidence for either magnitude.</li>
+<li><strong>Frequency x severity ignores parameter uncertainty</strong>, so its intervals understate uncertainty by construction.</li>
+<li><strong>Interval method.</strong> Mack and Clark intervals use a lognormal approximation to the total; the bootstrap uses empirical quantiles. Other choices would change coverage numbers somewhat.</li>
+<li><strong>Annual vs.&nbsp;quarterly.</strong> Headline results use annual triangles because quarterly triangles are mostly unusable for the standard methods. A real firm with a long, dense history might do better at finer granularity.</li>
+<li><strong>One firm size.</strong> A $5B stylised firm; no other sizes were tested.</li>
+</ol>
+</section>
+<section id="what-would-change-the-conclusions" class="level3">
+<h3 class="anchored" data-anchor-id="what-would-change-the-conclusions">What would change the conclusions</h3>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>If we found…</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Real unauthorized-trading events are far more frequent than ~1 per year</td>
+<td>Standard methods become usable; the “cannot run” finding would weaken</td>
+</tr>
+<tr class="even">
+<td>Detection lags are stable over time in real data</td>
+<td>The control-improvement failure matters less in practice</td>
+</tr>
+<tr class="odd">
+<td>Loss size does not grow with time undiscovered</td>
+<td>Control savings on expected loss largely disappear</td>
+</tr>
+<tr class="even">
+<td>Strong calendar-period effects in real data</td>
+<td>All development methods would need an explicit calendar term</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="what-client-data-would-replace-each-assumption" class="level3">
+<h3 class="anchored" data-anchor-id="what-client-data-would-replace-each-assumption">What client data would replace each assumption</h3>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Synthetic parameter</th>
+<th>Client source</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Event frequency by type</td>
+<td>Internal loss event database, trade-break and reconciliation logs</td>
+</tr>
+<tr class="even">
+<td>Discovery-lag distribution</td>
+<td>Timestamps for occurrence, detection and booking in the loss database</td>
+</tr>
+<tr class="odd">
+<td>Severity and tail</td>
+<td>Booked losses; external data (for example consortium loss data) for the tail</td>
+</tr>
+<tr class="even">
+<td>Severity growth with lag</td>
+<td>Cases where the same error type was found early and late</td>
+</tr>
+<tr class="odd">
+<td>Control effect on lag</td>
+<td>Before/after detection times around past control changes</td>
+</tr>
+<tr class="even">
+<td>Control cost</td>
+<td>Vendor quotes and internal run cost</td>
+</tr>
+<tr class="odd">
+<td>Firm size</td>
+<td>Actual AUM and trade volumes</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="use-of-the-results" class="level3">
+<h3 class="anchored" data-anchor-id="use-of-the-results">Use of the results</h3>
+<p>The numbers on this site are illustrations of method behaviour. They should not be quoted as estimates of any firm’s undiscovered losses or as a benchmark for the value of a particular control.</p>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

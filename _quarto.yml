@@ -1,0 +1,29 @@
+project:
+  type: website
+  output-dir: docs
+  render:
+    - index.qmd
+    - data.qmd
+    - results.qmd
+    - controls.qmd
+    - reproducibility.qmd
+
+website:
+  title: "Late-Discovered Operational Risk Events"
+  navbar:
+    left:
+      - {href: index.qmd, text: Overview}
+      - {href: data.qmd, text: Synthetic Data}
+      - {href: results.qmd, text: Results}
+      - {href: controls.qmd, text: Control Value}
+      - {href: reproducibility.qmd, text: "Reproducibility & Limitations"}
+
+format:
+  html:
+    theme: cosmo
+    toc: true
+    code-fold: true
+
+execute:
+  freeze: auto
+  warning: false

@@ -1,0 +1,119 @@
+---
+title: "Late-Discovered Operational Risk Events"
+subtitle: "How much loss has already happened but not yet been recorded?"
+---
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+for (f in list.files("R", full.names = TRUE)) source(f)
+res <- load_results()
+params <- load_params()
+aum <- params$firm$aum_usd
+s <- score_estimates(res$reps)
+gap <- incurred_gap(res$reps) |> filter(scenario == "baseline", granularity == "annual")
+g <- setNames(gap$mean_understatement, gap$type)
+ctl <- summarise_controls(res$ctl, params)
+r1 <- ctl |> filter(arm == "recon_automation")
+r2 <- ctl |> filter(arm == "independent_pnl_verification")
+b0 <- ctl |> filter(arm == "baseline")
+sc <- s |> filter(kind == "amount", scenario == "baseline", granularity == "annual")
+get <- \(t, m, col) sc[[col]][sc$type == t & sc$method == m]
+```
+
+::: {.callout-note}
+## Read this first
+Everything here comes from a **simulation with assumed parameters**, not from any firm's data. It tests how reserving methods behave when the true answer is known. It does not estimate any real firm's losses.
+:::
+
+## The question
+
+Operational losses such as trade errors, NAV pricing errors and unauthorized trading are often found long after they happen, and the loss database records them when they are found. So recent periods look cleaner than they are. This is the actuarial incurred-but-not-reported (IBNR) problem, and run-off triangles from the `ChainLadder` R package are a natural way to estimate what is missing.
+
+## What we found (under the assumed generator)
+
+1. **Recent reported losses understate the truth, a lot for slow-to-detect events.** For the latest four quarters, the share of true incurred loss not yet in the database averages `r fmt_pct(g[["trade_error"]])` for trade errors, `r fmt_pct(g[["nav_error"]])` for NAV errors and `r fmt_pct(g[["unauthorized_trading"]])` for unauthorized trading. ([pictures below](#sec-problem))
+
+2. **Standard methods work only where events are plentiful.** Mack and bootstrap chain-ladder are close to unbiased for trade errors (`r fmt_pct(get("trade_error", "mack", "rel_bias"))` relative bias) and acceptable for NAV errors (`r fmt_pct(get("nav_error", "mack", "rel_bias"))` for Mack), whose 95% intervals cover the truth `r fmt_pct(get("nav_error", "mack", "coverage_usable"))` of the time. ([Results](results.qmd#sec-validation))
+
+3. **For rare, heavy-tailed unauthorized trading, they mostly cannot run.** Mack was usable in `r get("unauthorized_trading", "mack", "n_usable")` of `r res$meta$n_reps` databases. A frequency x severity approach gives a usable estimate (relative bias `r fmt_pct(get("unauthorized_trading", "freq_x_sev", "rel_bias"))`) but its 95% intervals cover only `r fmt_pct(get("unauthorized_trading", "freq_x_sev", "coverage_usable"))`. About `r fmt_pct(1 - sum(res$reps$truth_window[res$reps$method == "chainladder" & res$reps$kind == "amount" & res$reps$scenario == "baseline" & res$reps$granularity == "annual" & res$reps$type == "unauthorized_trading"]) / sum(res$reps$truth_total[res$reps$method == "chainladder" & res$reps$kind == "amount" & res$reps$scenario == "baseline" & res$reps$granularity == "annual" & res$reps$type == "unauthorized_trading"]))` of the true undiscovered loss lies beyond the 10-year window. ([Results](results.qmd#sec-amounts))
+
+4. **A control improvement fools development methods.** If detection gets faster, methods trained on the slower past keep predicting development that no longer occurs. ([Results](results.qmd#sec-stress))
+
+5. **Faster detection helps the tail more than the mean.** Expected annual loss is `r fmt_usd(b0$mean_incurred_per_year)` (`r sprintf("%.0f", b0$mean_incurred_per_year / aum * 1e4)` bps of a $5B firm). The two example controls save `r fmt_usd(r1$mean_saving_per_year, 2)` and `r fmt_usd(r2$mean_saving_per_year, 2)` a year against assumed costs of `r fmt_usd(r1$annual_cost, 1)` and `r fmt_usd(r2$annual_cost, 1)`: close to break-even on the mean, with 95% expected shortfall falling from `r fmt_usd(b0$annual_es95)` to `r fmt_usd(r1$annual_es95)` and `r fmt_usd(r2$annual_es95)`. These depend entirely on assumed effects. ([Control value](controls.qmd))
+
+## What this means for a COO or CRO (conditional on the above)
+
+- Treat the most recent year of loss data for slow-detection event types as incomplete, and say so when reporting trends.
+- Do not apply a standard development method blindly to rare, large-loss events; use a frequency-severity view and an explicit tail assumption.
+- Judge a detection control by **how much of its promised lag reduction it must deliver to break even**, not by a single point ROI.
+
+To use this on real data you would replace each assumed parameter as listed under [Limitations](reproducibility.qmd#sec-limitations); the [Reproducibility](reproducibility.qmd) page shows how to rebuild everything.
+
+## The problem in pictures {#sec-problem}
+
+```{r}
+#| label: problem-setup
+#| include: false
+pb <- apply_scenario(params, "baseline")
+n_o <- pb$horizon$n_origin
+n_l <- pb$horizon$n_lag
+```
+
+### Why recent periods look clean
+
+A loss event database is organised by when an event was **discovered**, not when it **happened**. A trade error booked on Monday may be found by reconciliation the same week. A mispriced NAV may surface a year later. An unauthorized position can run for several years.
+
+So at any evaluation date, the most recent origin periods have had the least time to be discovered. Their recorded losses are low *because the events have not yet been found*, not necessarily because controls improved. This is the same structure as incurred-but-not-reported (IBNR) claims in insurance reserving, and a run-off triangle is the natural way to see it.
+
+### One synthetic database, as a triangle
+
+Rows are origin periods (years), columns are discovery lags (years after origin). A cell holds the loss from events that originated in that row and were discovered that many years later. The database can only fill the upper-left; the lower-right (orange) is real loss that exists but has not been discovered.
+
+```{r}
+#| label: fig-triangle
+#| fig-cap: "NAV-error losses, one simulated database, annual granularity. The orange region is known only because the data are synthetic."
+#| fig-height: 4.6
+events <- simulate_database(pb, rep = 1)
+sq <- build_square(events, "nav_error", "amount", n_o, n_l, period = 4)$square
+plot_triangle(sq, "NAV errors: recorded vs. not yet discovered", "Loss")
+```
+
+### The artifact: reported losses fall, true losses do not
+
+Averaging 100 simulated databases, the figure below compares what the database *reports* for each origin quarter with the true incurred loss. The gap opens in the last few years and is widest for the event types with the longest detection lags.
+
+```{r}
+#| label: fig-gap
+#| fig-cap: "Mean loss by origin quarter over 100 simulated databases: true incurred (line) vs. reported by the end of quarter 40 (area)."
+#| fig-height: 5
+by_origin <- parallel::mclapply(1:100, \(r) {
+  simulate_database(pb, rep = r) |>
+    summarise(incurred = sum(severity), reported = sum(severity[origin + lag <= n_o]), .by = c(type, origin))
+}, mc.cores = max(1L, parallel::detectCores() - 2L)) |>
+  bind_rows() |>
+  summarise(across(c(incurred, reported), mean), .by = c(type, origin)) |>
+  mutate(type = factor(type_lab[type], levels = type_lab))
+
+ggplot(by_origin, aes(origin)) +
+  geom_area(aes(y = reported, fill = type), alpha = 0.55) +
+  geom_line(aes(y = incurred, colour = type), linewidth = 0.7) +
+  facet_wrap(~type, ncol = 1, scales = "free_y") +
+  scale_fill_manual(values = type_col, guide = "none") +
+  scale_colour_manual(values = type_col, guide = "none") +
+  scale_y_continuous(labels = fmt_usd) +
+  labs(x = "Origin quarter", y = "Mean loss per origin quarter", title = "Reported losses understate recent incurred losses") +
+  theme_op()
+```
+
+```{r}
+#| label: gap-numbers
+gm <- setNames(gap$median_understatement, gap$type)
+```
+
+For the latest four origin quarters in the baseline scenario, the share of true incurred loss that is not yet in the database averages **`r fmt_pct(g[["trade_error"]])`** for trade errors, **`r fmt_pct(g[["nav_error"]])`** for NAV errors and **`r fmt_pct(g[["unauthorized_trading"]])`** for unauthorized trading (median `r fmt_pct(gm[["unauthorized_trading"]])`). These shares depend on the assumed lag distributions (see [Synthetic Data](data.qmd)); they illustrate the mechanism, not any real firm.
+
+### What the rest of the site tests
+
+If the missing amount can be estimated from the shape of past development, a firm can correct its recent loss figures and size a reserve-like buffer. The question we test is **which estimation methods are trustworthy for which event type**, using synthetic data where the true answer is known.

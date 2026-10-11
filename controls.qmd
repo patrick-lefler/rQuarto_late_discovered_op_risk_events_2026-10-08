@@ -1,0 +1,118 @@
+---
+title: "Control Value"
+---
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+for (f in list.files("R", full.names = TRUE)) source(f)
+res <- load_results()
+params <- load_params()
+aum <- params$firm$aum_usd
+ctl <- summarise_controls(res$ctl, params)
+```
+
+Faster detection has value because (i) loss is recorded sooner, which improves information, and (ii) in this simulator an event's size grows with the time it stays undiscovered. This page measures how much a detection control is worth **under those assumptions**. The effect sizes and costs are placeholders, not benchmarks; a real engagement would replace them with measured detection times and quoted prices.
+
+## The two controls
+
+```{r}
+#| label: tbl-controls
+tibble(
+  Control = ctl_lab[names(params$controls)],
+  Description = map_chr(params$controls, "description"),
+  `Annual cost (assumed)` = map_dbl(params$controls, "annual_cost_usd")
+) |>
+  gt::gt() |>
+  gt::fmt_currency(`Annual cost (assumed)`, decimals = 0)
+```
+
+Each control shifts the lag distribution for some event types (see `params.yaml`). Baseline and control arms use the **same seeds**, so each pair of runs shares event counts and severity draws, and the saving is a paired difference.
+
+## Result: expected loss and tail
+
+```{r}
+#| label: tbl-ctl
+base <- ctl |> filter(arm == "baseline")
+ctl |>
+  transmute(
+    Arm = ctl_lab[arm],
+    `Mean incurred / yr` = mean_incurred_per_year,
+    `bps of AUM` = mean_incurred_per_year / aum * 1e4,
+    `Saving / yr` = mean_saving_per_year,
+    `Annual cost` = annual_cost,
+    `Net / yr` = net_benefit_per_year,
+    `Undiscovered at year 10` = mean_undiscovered,
+    `95% VaR (annual)` = annual_var95,
+    `95% ES (annual)` = annual_es95
+  ) |>
+  gt::gt() |>
+  gt::fmt_currency(-c(Arm, `bps of AUM`), decimals = 2, suffixing = TRUE) |>
+  gt::fmt_number(`bps of AUM`, decimals = 1) |>
+  gt::sub_missing(missing_text = "-") |>
+  gt::tab_source_note("VaR/ES are over single origin-year totals pooled across 200 databases (2,000 years). Savings are paired against the baseline arm.")
+```
+
+```{r}
+#| label: ctl-text
+r1 <- ctl |> filter(arm == "recon_automation")
+r2 <- ctl |> filter(arm == "independent_pnl_verification")
+```
+
+On expected loss alone, both controls are close to break-even: reconciliation automation saves `r fmt_usd(r1$mean_saving_per_year, 2)` a year against a `r fmt_usd(r1$annual_cost, 2)` cost (net `r fmt_usd(r1$net_benefit_per_year, 2)`), and independent P&L verification saves `r fmt_usd(r2$mean_saving_per_year, 2)` against `r fmt_usd(r2$annual_cost, 2)` (net `r fmt_usd(r2$net_benefit_per_year, 2)`). The tail benefit is larger: 95% expected shortfall of annual loss falls from `r fmt_usd(base$annual_es95)` to `r fmt_usd(r1$annual_es95)` and `r fmt_usd(r2$annual_es95)`.
+
+```{r}
+#| label: fig-tail
+#| fig-height: 3.6
+ctl |>
+  select(arm, `95% VaR` = annual_var95, `95% ES` = annual_es95) |>
+  pivot_longer(-arm) |>
+  mutate(arm = factor(arm, levels = names(ctl_lab))) |>
+  ggplot(aes(arm, value, fill = arm)) +
+  geom_col(width = 0.65) +
+  facet_wrap(~name) +
+  scale_fill_manual(values = c(baseline = "grey60", ctl_col), guide = "none") +
+  scale_y_continuous(labels = fmt_usd) +
+  scale_x_discrete(labels = \(x) str_wrap(ctl_lab[x], 14)) +
+  labs(x = NULL, y = "Annual loss", title = "Faster detection thins the tail more than it moves the mean") +
+  theme_op()
+```
+
+## How effective must a control be? Break-even
+
+The size of the lag reduction is the least certain input. Scaling each control's assumed shift by a factor (1 = as assumed, 0 = no effect) shows where the mean saving equals the annual cost.
+
+```{r}
+#| label: fig-breakeven
+#| fig-height: 4
+be <- res$be
+ggplot(be$curve, aes(scale, net, colour = control)) +
+  geom_hline(yintercept = 0, colour = "grey40") +
+  geom_ribbon(aes(ymin = net - 1.96 * se, ymax = net + 1.96 * se, fill = control), alpha = 0.15, colour = NA) +
+  geom_line(linewidth = 0.9) +
+  geom_point() +
+  scale_colour_manual(values = ctl_col, labels = ctl_lab, name = NULL) +
+  scale_fill_manual(values = ctl_col, guide = "none") +
+  scale_y_continuous(labels = fmt_usd) +
+  labs(x = "Fraction of the assumed lag reduction actually achieved", y = "Net benefit per year (saving - cost)", title = "Break-even effectiveness", subtitle = "Band: 95% interval on the paired mean saving (simulation error only)") +
+  theme_op()
+```
+
+```{r}
+#| label: be-table
+be$break_even |>
+  mutate(Control = ctl_lab[control], `Break-even effectiveness` = break_even_scale) |>
+  select(Control, `Break-even effectiveness`) |>
+  gt::gt() |>
+  gt::fmt_percent(`Break-even effectiveness`, decimals = 0) |>
+  gt::sub_missing(missing_text = "not reached on grid")
+```
+
+The band reflects Monte Carlo error only. It does **not** include uncertainty in the cost, the lag shift, or the severity-growth assumption, which are likely larger.
+
+## Caveats specific to this page
+
+- Savings arise only through the assumed link between time undiscovered and loss size. If real losses do not grow while undiscovered, the mean saving is much smaller, and the case rests on tail reduction and information value.
+- Control cost is a single annual figure with no ramp-up, no false-positive workload and no risk of the control failing.
+- No discounting, no correlation with market stress, and no regulatory or reputational effects are modelled.

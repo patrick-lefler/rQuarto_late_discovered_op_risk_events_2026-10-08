@@ -1,0 +1,83 @@
+---
+title: "Late-discovered operational losses: board brief"
+format:
+  typst:
+    papersize: us-letter
+    margin: {x: 0.6in, y: 0.5in}
+    fontsize: 9pt
+    fig-format: png
+    fig-dpi: 200
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r}
+library(tidyverse)
+for (f in list.files("R", full.names = TRUE)) source(f)
+res <- load_results()
+params <- load_params()
+aum <- params$firm$aum_usd
+s <- score_estimates(res$reps)
+gap <- incurred_gap(res$reps) |> filter(scenario == "baseline", granularity == "annual")
+g <- setNames(gap$mean_understatement, gap$type)
+ctl <- summarise_controls(res$ctl, params)
+b0 <- ctl |> filter(arm == "baseline")
+r1 <- ctl |> filter(arm == "recon_automation")
+r2 <- ctl |> filter(arm == "independent_pnl_verification")
+sc <- s |> filter(kind == "amount", scenario == "baseline", granularity == "annual")
+get <- \(t, m, col) sc[[col]][sc$type == t & sc$method == m]
+```
+
+*Simulated results under assumed parameters for a stylised $5B buy-side firm. Not an estimate of any real firm's losses.*
+
+**The issue.** Loss databases record events when they are found, not when they happen, so recent periods look cleaner than they are. For the latest four quarters, `r fmt_pct(g[["nav_error"]])` of true NAV-error loss and `r fmt_pct(g[["unauthorized_trading"]])` of unauthorized-trading loss was not yet recorded, against `r fmt_pct(g[["trade_error"]])` for fast-detected trade errors.
+
+```{r}
+#| fig-height: 1.9
+#| fig-width: 7.4
+params_b <- apply_scenario(params, "baseline")
+by_origin <- parallel::mclapply(1:60, \(r) {
+  simulate_database(params_b, rep = r) |>
+    summarise(incurred = sum(severity), reported = sum(severity[origin + lag <= 40]), .by = c(type, origin))
+}, mc.cores = max(1L, parallel::detectCores() - 2L)) |>
+  bind_rows() |>
+  summarise(across(c(incurred, reported), mean), .by = c(type, origin)) |>
+  mutate(type = factor(type_lab[type], levels = type_lab))
+ggplot(by_origin, aes(origin)) +
+  geom_area(aes(y = reported, fill = type), alpha = 0.55) +
+  geom_line(aes(y = incurred, colour = type), linewidth = 0.6) +
+  facet_wrap(~type, nrow = 1, scales = "free_y") +
+  scale_fill_manual(values = type_col, guide = "none") + scale_colour_manual(values = type_col, guide = "none") +
+  scale_y_continuous(labels = fmt_usd) +
+  labs(x = "Origin quarter", y = NULL, title = "Line: true loss. Area: reported by quarter 40.") + theme_op()
+```
+
+**What can be estimated.** Standard chain-ladder methods (Mack, bootstrap) work for frequent events and fail for rare, large ones. Cells show the bias of the undiscovered-loss estimate; n = usable fits out of 200.
+
+```{r}
+#| fig-height: 2.3
+#| fig-width: 7.4
+plot_scorecard(s, "amount") + theme(legend.position = "none", axis.text = element_text(size = 6.5)) + labs(title = NULL, subtitle = NULL)
+```
+
+**What detection controls are worth.** Expected loss is about `r fmt_usd(b0$mean_incurred_per_year)` a year; two example controls save `r fmt_usd(r1$mean_saving_per_year, 2)` and `r fmt_usd(r2$mean_saving_per_year, 2)` a year against assumed costs of `r fmt_usd(r1$annual_cost, 1)` and `r fmt_usd(r2$annual_cost, 1)`.
+
+```{r}
+#| fig-height: 1.9
+#| fig-width: 7.4
+ggplot(res$be$curve, aes(scale, net, colour = control)) +
+  geom_hline(yintercept = 0, colour = "grey40") + geom_line(linewidth = 0.8) +
+  scale_colour_manual(values = ctl_col, labels = ctl_lab, name = NULL) +
+  scale_y_continuous(labels = fmt_usd) +
+  labs(x = "Share of assumed lag reduction achieved", y = "Net / yr") + theme_op()
+```
+
+**Three decisions this supports (conditional on the assumptions)**
+
+1. Label the latest year of loss data for slow-detection event types as incomplete when reporting trends to the board.
+2. Do not apply standard development methods to rare large-loss events; use a frequency-severity view with an explicit tail assumption.
+3. Evaluate a detection control by the share of its promised lag reduction it must deliver to break even, not by a single ROI figure.
+
+*Replace the assumed parameters with the firm's own detection times and loss data before relying on any figure above.*

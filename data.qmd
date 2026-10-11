@@ -1,0 +1,110 @@
+---
+title: "Synthetic Data"
+---
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+for (f in list.files("R", full.names = TRUE)) source(f)
+params <- load_params()
+base <- apply_scenario(params, "baseline")
+aum <- params$firm$aum_usd
+```
+
+All data are simulated. No internal or client loss data are used, and every parameter is an **assumption** chosen for plausibility, stored in `params.yaml`. The point is to have a known ground truth against which estimation methods can be scored, not to describe a real firm.
+
+## Generator design
+
+For each event type and origin quarter:
+
+1. **Count** ~ Poisson($\lambda \times$ exposure), where exposure grows `r fmt_pct(params$exposure$growth_per_quarter, 1)` per quarter.
+2. **Discovery lag** (quarters): a mixture of a fast component (geometric) and a slow component (discretised lognormal).
+3. **Severity**: lognormal body spliced to a generalised Pareto tail, then scaled by $(1 + e \times \text{lag})$, so events found later are larger.
+4. The loss is **recorded in full at the discovery date**.
+
+The generator keeps the full square, so the true undiscovered loss is always known.
+
+## Parameters
+
+```{r}
+#| label: tbl-params
+types <- names(params$event_types)
+tibble(
+  `Event type` = type_lab[types],
+  `Events / qtr` = map_dbl(params$event_types, "lambda"),
+  `Fast-lag weight` = map_dbl(params$event_types, \(x) x$lag$w_fast),
+  `Slow-lag median (qtrs)` = map_dbl(params$event_types, \(x) exp(x$lag$slow_meanlog)),
+  `Median severity` = map_dbl(params$event_types, \(x) exp(x$severity$meanlog)),
+  `Tail prob.` = map_dbl(params$event_types, \(x) x$severity$p_tail),
+  `Severity growth / lag qtr` = map_dbl(params$event_types, \(x) x$severity$lag_elasticity)
+) |>
+  gt::gt() |>
+  gt::fmt_currency(`Median severity`, decimals = 0) |>
+  gt::fmt_number(c(`Events / qtr`, `Slow-lag median (qtrs)`), decimals = 1) |>
+  gt::fmt_number(c(`Fast-lag weight`, `Tail prob.`, `Severity growth / lag qtr`), decimals = 2) |>
+  gt::tab_source_note("All values are assumptions (status: assumption in params.yaml).")
+```
+
+## Discovery-lag distributions
+
+```{r}
+#| label: fig-lags
+#| fig-cap: "Simulated share of events by discovery lag, per event type (200,000 draws each)."
+#| fig-height: 3.6
+set.seed(1)
+lags <- map(types, \(t) tibble(type = type_lab[t], lag = draw_lag(2e5, params$event_types[[t]]$lag))) |> list_rbind()
+lags |>
+  filter(lag <= 24) |>
+  count(type, lag) |>
+  mutate(share = n / 2e5, .by = type) |>
+  mutate(type = factor(type, levels = type_lab)) |>
+  ggplot(aes(lag, share, fill = type)) +
+  geom_col(width = 0.85) +
+  facet_wrap(~type, nrow = 1) +
+  scale_fill_manual(values = type_col, guide = "none") +
+  scale_y_continuous(labels = scales::label_percent()) +
+  labs(x = "Discovery lag (quarters, truncated at 24)", y = "Share of events", title = "Detection speed differs sharply by event type") +
+  theme_op()
+```
+
+```{r}
+#| label: lag-stats
+lag_stats <- lags |> summarise(median = median(lag), p90 = quantile(lag, .9), beyond_window = mean(lag >= params$horizon$n_lag), .by = type)
+```
+
+Median lags are `r paste(lag_stats$type, lag_stats$median, sep = ": ", collapse = ", ")` quarters. The share of events discovered **after** the 40-quarter window is `r paste0(lag_stats$type, " ", fmt_pct(lag_stats$beyond_window, 1), collapse = ", ")`.
+
+## Sanity check: size of the losses
+
+An uncalibrated simulator can easily produce implausible losses, so we check the scale against an assumed AUM of `r fmt_usd(aum)`. Expected annual incurred loss (all events, discovered or not) over 200 simulated databases:
+
+```{r}
+#| label: tbl-scale
+sims <- parallel::mclapply(1:200, \(r) {
+  simulate_database(base, rep = r) |>
+    summarise(inc = sum(severity) / (params$horizon$n_origin / 4), n = n() / (params$horizon$n_origin / 4), .by = type)
+}, mc.cores = max(1L, parallel::detectCores() - 2L)) |>
+  bind_rows(.id = "rep")
+by_type <- sims |>
+  summarise(`Mean loss / yr` = mean(inc), `Events / yr` = mean(n), .by = type) |>
+  mutate(Type = type_lab[type], `bps of AUM` = `Mean loss / yr` / aum * 1e4)
+total <- sims |> summarise(inc = sum(inc), .by = rep)
+bind_rows(
+  by_type |> select(Type, `Events / yr`, `Mean loss / yr`, `bps of AUM`),
+  tibble(Type = "All types", `Events / yr` = sum(by_type$`Events / yr`), `Mean loss / yr` = mean(total$inc), `bps of AUM` = mean(total$inc) / aum * 1e4)
+) |>
+  gt::gt() |>
+  gt::fmt_number(c(`Events / yr`, `bps of AUM`), decimals = 1) |>
+  gt::fmt_currency(`Mean loss / yr`, decimals = 0) |>
+  gt::tab_source_note(sprintf("Annual total: median %.1f bps, 95th percentile %.1f bps of AUM. Targeted range: 10-15 bps mean; this is an assumption, not a benchmark.", median(total$inc) / aum * 1e4, quantile(total$inc, .95) / aum * 1e4))
+```
+
+## Scenarios
+
+| Scenario | What changes |
+|---|---|
+| Baseline | Stable detection, proportional development |
+| Heavy-tail shock | Two very large unauthorized-trading losses injected (`r fmt_usd(base$scenarios$heavy_tail_shock$injected_events[[1]]$severity, 0)` and `r fmt_usd(base$scenarios$heavy_tail_shock$injected_events[[2]]$severity, 0)`) |
+| Control improvement | From quarter `r params$scenarios$control_improvement$control_shift$calendar_quarter`, the remaining time to discovery falls by `r fmt_pct(params$scenarios$control_improvement$control_shift$reduction)` |
+| Exposure growth | Volume growth rises to `r fmt_pct(params$scenarios$exposure_growth$exposure$growth_per_quarter, 0)` per quarter |

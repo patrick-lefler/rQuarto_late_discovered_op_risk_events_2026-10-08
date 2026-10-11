@@ -1,0 +1,172 @@
+---
+title: "Reproducibility and Limitations"
+---
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+for (f in list.files("R", full.names = TRUE)) source(f)
+res <- load_results()
+```
+
+This page documents how to rebuild every number on the site, and checks a few of those claims live each time it is rendered.
+
+## One command
+
+From a clean clone:
+
+```sh
+Rscript -e 'renv::restore()'   # once: package versions from renv.lock
+Rscript run_all.R               # simulations -> mlReserve experiment -> site in docs/
+```
+
+`run_all.R` runs `run_simulations.R` (replications, control study, break-even), installs the pinned `mlReserve` fork into an isolated library if needed and runs `run_mlreserve.R`, then calls `quarto render`.
+
+## Environment
+
+```{r}
+#| label: env
+tibble(
+  Item = c("R", "Platform", "ChainLadder (CRAN, used for all headline results)", "mlReserve fork (isolated library)", "Fork commit", "Quarto"),
+  Value = c(R.version.string, R.version$platform, as.character(packageVersion("ChainLadder")),
+            readRDS("data/mlreserve.rds")$fork_version, readRDS("data/mlreserve.rds")$commit,
+            trimws(system2("quarto", "--version", stdout = TRUE)))
+) |> gt::gt()
+```
+
+The package versions are pinned in `renv.lock`. Status of the project library against the lockfile:
+
+```{r}
+#| label: renv-status
+#| echo: false
+out <- capture.output(renv::status())
+cat(out, sep = "\n")
+```
+
+The experimental fork is installed from GitHub at the pinned commit into `lib_mlreserve/`, outside renv, so installing it cannot change the CRAN ChainLadder version.
+
+## Randomness
+
+All randomness is seeded explicitly, so results do not depend on how many cores are used (tested). A master seed in `params.yaml` (`master_seed`) generates a seed for every stream:
+
+```{r}
+#| label: seed-code
+#| echo: true
+derive_seed
+```
+
+Seeds depend on the replication number, the scenario index and the event-type index, so the same replication in different scenarios shares nothing accidentally, and the baseline and control arms of the control study share seeds on purpose (paired comparison). Bootstrap and frequency-severity simulations take a seed derived the same way.
+
+## Parameters
+
+Every simulator parameter lives in one file. `status: assumption` marks values that are plausible choices, not calibrated estimates.
+
+```{r}
+#| label: params-yaml
+#| results: asis
+cat("```yaml\n", paste(readLines("params.yaml"), collapse = "\n"), "\n```\n", sep = "")
+```
+
+```{r}
+#| label: params-count
+leaf <- unlist(yaml::read_yaml("params.yaml"))
+n_leaf <- length(leaf)
+n_assump <- sum(grepl("status$", names(leaf)) & leaf == "assumption")
+```
+
+The file holds `r n_leaf` leaf values in `r n_assump` blocks marked as assumptions. No parameter is calibrated to data in this version.
+
+## Data lineage
+
+Generated data are outputs, not sources of truth: the generator and `params.yaml` are. Content hashes (SHA-256 of the deserialised object) let you confirm you reproduced the same results.
+
+```{r}
+#| label: hashes
+files <- list.files("data", pattern = "\\.rds$", full.names = TRUE)
+tibble(File = basename(files), `SHA-256 of content` = map_chr(files, \(f) substr(digest::digest(readRDS(f), algo = "sha256"), 1, 24)), Rows = map_chr(files, \(f) {
+  x <- readRDS(f)
+  if (is.data.frame(x)) as.character(nrow(x)) else "-"
+})) |> gt::gt()
+```
+
+```{r}
+#| label: stale
+current_md5 <- unname(tools::md5sum("params.yaml"))
+fresh <- identical(current_md5, res$meta$params_md5)
+```
+
+**Staleness check:** `params.yaml` has `r if (fresh) "not changed" else "CHANGED"` since the results were generated (`r if (fresh) "results are current" else "re-run run_simulations.R before trusting this site"`). Results were produced `r res$meta$finished` with `r res$meta$n_reps` replications on `r res$meta$n_cores` workers.
+
+## Tests
+
+The suite is run each time this page is rendered:
+
+```{r}
+#| label: tests
+#| message: false
+tr <- testthat::test_dir("tests/testthat", reporter = "silent", stop_on_failure = FALSE)
+td <- as.data.frame(tr)
+td |>
+  summarise(Tests = n(), Expectations = sum(nb), Failed = sum(failed), Errors = sum(error), Warnings = sum(warning), Skipped = sum(skipped), .by = file) |>
+  gt::gt()
+```
+
+What the tests cover:
+
+- Triangle construction reconciles **exactly** to the event-level data (counts and amounts, quarterly and annual) and never leaks undiscovered events into the observed region.
+- The generator is deterministic for a seed, rejects invalid parameters, keeps lags non-negative under the control shift and injects shock events exactly.
+- Estimators: the in-house chain-ladder matches the package on a dense triangle, tolerates empty development columns, never throws (errors become `failed`), and sparse triangles are reported as failed or suspect, never as silent zeros.
+- Scoring and control functions are checked against hand-computed values.
+- A replication run is identical on 1 and 2 cores.
+
+## Caching and runtime
+
+Pages cache their chunk results with Quarto `freeze: auto`; a page re-executes when its source changes. To force a full rebuild, delete `_freeze/` and `docs/`. The heavy computation is not in the pages at all: it is in `run_simulations.R`, which took `r round(res$meta$replication_seconds / 60, 1)` minutes for the replications and `r round(res$meta$control_seconds, 0)` seconds for the control study and break-even on this run.
+
+## Known limits of reproducibility
+
+- Bit-for-bit equality is expected only on the same platform and package versions. Floating-point and BLAS differences across machines can change low-order digits, and occasionally the optimiser path of the Clark fits.
+- The `mlReserve` fork is a moving target on GitHub; the pinned commit keeps the experiment fixed, but the fork could disappear.
+- Quarto and Typst versions affect rendering, not the numbers.
+
+## Limitations and model risk {#sec-limitations}
+
+This project tests how estimation methods behave on **data we generated**. That is its strength (the true answer is known) and its main limitation (the answer holds only for this generator).
+
+### Key limitations
+
+1. **Synthetic, uncalibrated parameters.** Frequencies, lag distributions, severities and control effects are assumptions chosen for plausibility. Different values would change the numbers, and may change which method works.
+2. **The generator and the methods share structure.** Discovery lag is independent of origin period apart from the explicit scenarios, which is close to what chain-ladder assumes. Real loss databases have reporting-policy changes, system migrations and batch back-fills that create calendar-period effects the baseline does not contain.
+3. **Loss is booked in full at discovery.** Real events also have payment and recovery development after discovery. This is a second triangle layer that is not modelled.
+4. **Event types are independent.** In reality a market shock raises trade errors, NAV errors and unauthorized-position losses together.
+5. **Control effects are assumed.** The savings come from a posited link between time undiscovered and loss size, and an assumed shift in the lag distribution. We have no evidence for either magnitude.
+6. **Frequency x severity ignores parameter uncertainty**, so its intervals understate uncertainty by construction.
+7. **Interval method.** Mack and Clark intervals use a lognormal approximation to the total; the bootstrap uses empirical quantiles. Other choices would change coverage numbers somewhat.
+8. **Annual vs. quarterly.** Headline results use annual triangles because quarterly triangles are mostly unusable for the standard methods. A real firm with a long, dense history might do better at finer granularity.
+9. **One firm size.** A $5B stylised firm; no other sizes were tested.
+
+### What would change the conclusions
+
+| If we found... | Effect |
+|---|---|
+| Real unauthorized-trading events are far more frequent than ~1 per year | Standard methods become usable; the "cannot run" finding would weaken |
+| Detection lags are stable over time in real data | The control-improvement failure matters less in practice |
+| Loss size does not grow with time undiscovered | Control savings on expected loss largely disappear |
+| Strong calendar-period effects in real data | All development methods would need an explicit calendar term |
+
+### What client data would replace each assumption
+
+| Synthetic parameter | Client source |
+|---|---|
+| Event frequency by type | Internal loss event database, trade-break and reconciliation logs |
+| Discovery-lag distribution | Timestamps for occurrence, detection and booking in the loss database |
+| Severity and tail | Booked losses; external data (for example consortium loss data) for the tail |
+| Severity growth with lag | Cases where the same error type was found early and late |
+| Control effect on lag | Before/after detection times around past control changes |
+| Control cost | Vendor quotes and internal run cost |
+| Firm size | Actual AUM and trade volumes |
+
+### Use of the results
+
+The numbers on this site are illustrations of method behaviour. They should not be quoted as estimates of any firm's undiscovered losses or as a benchmark for the value of a particular control.
