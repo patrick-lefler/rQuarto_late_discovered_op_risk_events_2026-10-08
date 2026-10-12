@@ -101,15 +101,16 @@ Methods are applied to count triangles, amount triangles, or both, as appropriat
 - Shorten the lag distribution (for example, a faster reconciliation or pre-trade control) and measure the change in reported loss, in true loss, and in IBNR.
 - Express the result as the reduction in expected undiscovered loss and in the 95th-percentile IBNR. Control costs are labeled assumptions.
 
-## 5. Website Structure (Quarto website, maximum five pages)
+## 5. Website Structure (Quarto website, Large tier: six pages, approved 2026-10-11)
 
 | Page | File | Content |
 |---|---|---|
 | Overview | `index.qmd` | Executive summary, headline findings, the discovery-lag problem in pictures |
 | Synthetic Data | `data.qmd` | Generator design, parameters, ground truth, scale sanity check, scenarios |
-| Results | `results.qmd` | Count triangles, dollar triangles, method validation, stress tests, experimental `mlReserve` comparator |
+| Results | `results.qmd` | Summary by event type, count triangles, dollar triangles (incl. Bornhuetter-Ferguson), method validation, stress tests |
 | Control Value | `controls.qmd` | Value of faster detection, break-even effectiveness |
 | Reproducibility and Limitations | `reproducibility.qmd` | Section 6 below, plus limitations and model risk |
+| ML appendix | `ml-appendix.qmd` | Experimental `mlReserve` comparator, moved off Results |
 
 The one-page board brief (`brief.qmd`, PDF) is kept in the repository but excluded from the website render.
 

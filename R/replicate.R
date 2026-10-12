@@ -7,7 +7,9 @@ flatten_estimates <- function(res, kind) {
       kind = kind, method = method, status = r$status, message = substr(r$message %||% "", 1, 80),
       est = r$total$ibnr %||% NA_real_, se = r$total$se %||% NA_real_,
       lo = r$total$lo %||% NA_real_, hi = r$total$hi %||% NA_real_,
-      est_recent = if (is.null(r$by_origin)) NA_real_ else sum(utils::tail(r$by_origin$ibnr, attr(r, "recent_n") %||% 1))
+      est_recent = if (is.null(r$by_origin)) NA_real_ else sum(utils::tail(r$by_origin$ibnr, attr(r, "recent_n") %||% 1)),
+      fit_omega = r$detail$omega %||% NA_real_, fit_theta = r$detail$theta %||% NA_real_, fit_elr = r$detail$elr %||% NA_real_,
+      cal_z = r$detail$cal_z %||% NA_real_, fallback_share = r$detail$fallback_share %||% NA_real_, min_donors = as.numeric(r$detail$min_donors %||% NA_real_)
     )
   }) |> purrr::list_rbind()
 }

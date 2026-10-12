@@ -30,6 +30,9 @@ apply_scenario <- function(params, scenario = "baseline") {
   params$scenario_name <- scenario
   params$injected_events <- overrides$injected_events
   params$control_shift <- overrides$control_shift
+  params$count_dist <- overrides$count_dist %||% "poisson"
+  params$count_size <- overrides$count_size
+  if (!is.null(overrides$reporting_threshold_usd)) params$reporting_threshold_usd <- overrides$reporting_threshold_usd
   if (!is.null(overrides$exposure)) {
     params$exposure <- utils::modifyList(params$exposure, overrides$exposure)
   }

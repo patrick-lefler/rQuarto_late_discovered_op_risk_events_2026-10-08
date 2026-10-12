@@ -20,8 +20,32 @@ make_inputs <- function(events_all, type, value, params, period = 1) {
     tri_cum = ChainLadder::incr2cum(observed_triangle(obs$square)),
     exposure = exposure_p,
     events_obs = add_periods(seen[seen$type == type, ], period),
-    truth = true_ibnr(full$square, full$tail)
+    truth = true_ibnr(full$square, full$tail),
+    bench_unreported = benchmark_unreported(params, type, value, period)
   )
+}
+
+# Share of each origin period's in-window loss (or count) that is still undiscovered at the evaluation date,
+# implied by the lag distribution in params. Used as an externally supplied (benchmark) development pattern for
+# Bornhuetter-Ferguson; in this study it is the generator's own pattern, so it is an optimistic benchmark.
+benchmark_unreported <- function(params, type, value, period = 1) {
+  n_o <- params$horizon$n_origin
+  n_l <- params$horizon$n_lag
+  spec <- params$event_types[[type]]
+  lag <- 0:(n_o + n_l)
+  slow <- stats::plnorm(lag + 1, spec$lag$slow_meanlog, spec$lag$slow_sdlog) - stats::plnorm(lag, spec$lag$slow_meanlog, spec$lag$slow_sdlog)
+  pmf <- spec$lag$w_fast * stats::dgeom(lag, spec$lag$p_fast) + (1 - spec$lag$w_fast) * slow
+  w_lag <- pmf * if (value == "amount") 1 + spec$severity$lag_elasticity * lag else 1
+  n_p <- n_o / period
+  n_lp <- n_l / period
+  exposure <- params$exposure$base * (1 + params$exposure$growth_per_quarter)^(seq_len(n_o) - 1)
+  vapply(seq_len(n_p), \(i) {
+    q <- ((i - 1) * period + 1):(i * period)
+    d <- outer(q, lag, `+`)
+    in_win <- ceiling(d / period) <= i + n_lp - 1
+    w <- outer(exposure[q], w_lag)
+    sum(w[in_win & d > n_o]) / sum(w[in_win])
+  }, numeric(1))
 }
 
 interval_lognormal <- function(mean, se, level = 0.95) {
@@ -116,7 +140,10 @@ est_boot <- function(inp, R = 1000, seed = 1L) {
     sims <- as.numeric(b$IBNR.Totals)
     res <- check_output(new_result(by, mean(sims), stats::sd(sims), sims = sims))
     ref <- est_chainladder(inp)
-    if (res$status == "ok" && ref$status == "ok" && ref$total$ibnr > 0 && res$total$ibnr < 0.1 * ref$total$ibnr) {
+    if (res$status == "ok" && res$total$ibnr <= 0) {
+      res$status <- "suspect"
+      res$message <- "bootstrap mean IBNR is zero (no development information)"
+    } else if (res$status == "ok" && ref$status == "ok" && ref$total$ibnr > 0 && res$total$ibnr < 0.1 * ref$total$ibnr) {
       res$status <- "suspect"
       res$message <- sprintf("bootstrap mean IBNR %.3g is <10%% of deterministic chain-ladder %.3g", res$total$ibnr, ref$total$ibnr)
     }
@@ -128,6 +155,7 @@ clark_core <- function(fit) {
   by <- tibble::tibble(origin = seq_along(fit$FutureValue), ibnr = unname(fit$FutureValue), se = unname(fit$StdError))
   res <- check_output(new_result(by, sum(by$ibnr), as.numeric(fit$Total["StdError"])))
   par <- fit$PAR[c("omega", "theta")]
+  res$detail <- list(omega = unname(par[["omega"]]), theta = unname(par[["theta"]]), elr = unname(fit$PAR["ELR"]))
   at_bound <- any(is.finite(par) & (par <= 0.011 | abs(par - 0.5) < 1e-6 & names(par) == "theta"))
   if (res$status == "ok" && isTRUE(at_bound)) {
     res$status <- "suspect"
@@ -156,25 +184,143 @@ est_clark <- function(inp, G = "loglogistic", tail = FALSE, cape_cod = FALSE) {
   })
 }
 
-observed_mean_severity <- function(events_obs, n_lag, bandwidth = 1, min_n = 5) {
-  pooled <- mean(events_obs$severity)
-  purrr::map(0:(n_lag - 1), \(k) {
-    near <- events_obs$severity[abs(events_obs$lag_p - k) <= bandwidth]
-    if (length(near) >= min_n) near else events_obs$severity
+# Mack (1993) chain-ladder with an explicit factor of 1 for development columns with no volume, so it runs on sparse
+# triangles where ChainLadder::MackChainLadder() stops on a non-finite factor. `n_diag` restricts the development
+# factors (and variance parameters) to the latest n calendar diagonals. Verified against the package on RAA.
+mack_manual <- function(tri_cum, n_diag = Inf) {
+  m <- unclass(tri_cum)
+  n <- nrow(m)
+  stopifnot(ncol(m) == n)
+  diag_idx <- outer(seq_len(n), seq_len(n), `+`)
+  keep <- diag_idx > n + 1 - n_diag
+  f <- numeric(n - 1)
+  sig2 <- numeric(n - 1)
+  for (k in seq_len(n - 1)) {
+    rows <- which(!is.na(m[, k + 1]) & keep[, k + 1])
+    den <- sum(m[rows, k])
+    f[k] <- if (den > 0) sum(m[rows, k + 1]) / den else 1
+    pos <- rows[m[rows, k] > 0]
+    if (length(rows) > 1 && length(pos) > 0) {
+      sig2[k] <- sum(m[pos, k] * (m[pos, k + 1] / m[pos, k] - f[k])^2) / (length(rows) - 1)
+    }
+  }
+  if (n >= 4) {
+    a <- sig2[n - 2]
+    b <- sig2[n - 3]
+    sig2[n - 1] <- if (b > 0) min(a^2 / b, a, b) else 0
+  }
+  full <- m
+  for (i in seq_len(n)) for (k in seq_len(n - 1)) if (is.na(full[i, k + 1])) full[i, k + 1] <- full[i, k] * f[k]
+  latest <- vapply(seq_len(n), \(i) m[i, n + 1 - i], numeric(1))
+  ult <- full[, n]
+  ibnr <- ult - latest
+  S <- vapply(seq_len(n - 1), \(k) sum(m[seq_len(n - k), k]), numeric(1))
+  inv0 <- \(x) ifelse(x > 0, 1 / x, 0)
+  term <- sig2 / f^2
+  mse <- numeric(n)
+  for (i in 2:n) {
+    ks <- (n + 1 - i):(n - 1)
+    mse[i] <- ult[i]^2 * sum(term[ks] * (inv0(full[i, ks]) + inv0(S[ks])))
+  }
+  cross <- 0
+  for (i in 2:(n - 1)) {
+    ks <- (n + 1 - i):(n - 1)
+    cross <- cross + ult[i] * sum(ult[(i + 1):n]) * sum(term[ks] * inv0(S[ks]))
+  }
+  # standardised age-to-age residuals on every observed transition, indexed by calendar diagonal i + k
+  resid <- matrix(NA_real_, n, n - 1)
+  for (k in seq_len(n - 1)) for (i in seq_len(n)) {
+    if (!is.na(m[i, k + 1]) && m[i, k] > 0 && sig2[k] > 0) resid[i, k] <- (m[i, k + 1] - f[k] * m[i, k]) / sqrt(sig2[k] * m[i, k])
+  }
+  list(ibnr = unname(ibnr), se = unname(sqrt(mse)), total_ibnr = unname(sum(ibnr)), total_se = unname(sqrt(sum(mse) + 2 * cross)),
+       factors = f, resid = resid)
+}
+
+# Calendar-diagonal shift diagnostic: mean standardised residual on the latest `n_last` diagonals, as a z-score.
+# Strongly negative = recent development is below what the earlier factors predict (e.g. faster detection).
+calendar_z <- function(tri_cum, n_last = 2) {
+  r <- mack_manual(tri_cum)$resid
+  n <- nrow(r)
+  diag_idx <- outer(seq_len(n), seq_len(n - 1), `+`)
+  z <- r[diag_idx > n - n_last & diag_idx <= n]
+  z <- z[is.finite(z)]
+  if (length(z) < 3) return(NA_real_)
+  mean(z) * sqrt(length(z))
+}
+
+est_mack_manual <- function(inp, name = "mack_ec", n_diag = Inf) {
+  run_safely(name, \(){
+    mk <- mack_manual(inp$tri_cum, n_diag)
+    by <- tibble::tibble(origin = seq_along(mk$ibnr), ibnr = mk$ibnr, se = mk$se)
+    out <- check_output(new_result(by, mk$total_ibnr, mk$total_se))
+    if (name == "mack_ec") out$detail <- list(cal_z = calendar_z(inp$tri_cum))
+    out
   })
 }
 
+# Bornhuetter-Ferguson and Benktander (k = 1) on the in-window amount triangle.
+# A-priori ultimate = expected loss per unit exposure (from the 5 oldest origin periods, whose development is nearly
+# complete) x exposure. Percent unreported comes either from the triangle's own chain-ladder pattern ("own") or from
+# an externally supplied pattern ("benchmark", inp$bench_unreported). Point estimates only: no interval is produced.
+est_bf <- function(inp, pattern = c("own", "benchmark"), method = c("bf", "benktander")) {
+  pattern <- match.arg(pattern)
+  method <- match.arg(method)
+  name <- paste0(method, if (pattern == "benchmark") "_benchmark" else "")
+  run_safely(name, \(){
+    full <- project_chainladder(inp$tri_cum)
+    n <- nrow(full)
+    latest <- vapply(seq_len(n), \(i) full[i, n + 1 - i], numeric(1))
+    f <- vapply(seq_len(n - 1), \(k) {
+      m <- unclass(inp$tri_cum)
+      rows <- !is.na(m[, k + 1])
+      den <- sum(m[rows, k])
+      if (den > 0) sum(m[rows, k + 1]) / den else 1
+    }, numeric(1))
+    cdf <- vapply(seq_len(n), \(i) if (i == 1) 1 else prod(f[(n + 1 - i):(n - 1)]), numeric(1))
+    unrep <- if (pattern == "own") 1 - 1 / cdf else inp$bench_unreported
+    oldest <- seq_len(min(5, n))
+    elr <- sum(full[oldest, n]) / sum(inp$exposure[oldest])
+    prior <- elr * inp$exposure
+    bf_ibnr <- prior * unrep
+    ibnr <- if (method == "bf") bf_ibnr else unrep * (latest + bf_ibnr)
+    check_output(new_result(tibble::tibble(origin = seq_len(n), ibnr = ibnr, se = NA_real_), sum(ibnr), NA_real_))
+  })
+}
+
+# Severity donors for each lag: observed events within `bandwidth` periods of the lag; if fewer than `min_n`, all
+# observed events are used (which drops the lag uplift). `pooled = "uplift"` instead de-uplifts every observed severity
+# by an estimated linear lag effect e (OLS slope/intercept of severity on lag, floored at 0) and re-applies it at the
+# projected lag, so all events inform every lag.
+severity_pools <- function(events_obs, n_lag, bandwidth = 1, min_n = 5, pooled = c("nearby", "uplift")) {
+  pooled <- match.arg(pooled)
+  if (pooled == "uplift") {
+    fit <- stats::lm(severity ~ lag_p, data = events_obs)
+    e <- max(unname(stats::coef(fit)[2] / stats::coef(fit)[1]), 0)
+    if (!is.finite(e)) e <- 0
+    base <- events_obs$severity / (1 + e * events_obs$lag_p)
+    return(list(pools = purrr::map(0:(n_lag - 1), \(k) base * (1 + e * (k + 0.5))), n_donors = rep(length(base), n_lag), fallback = rep(FALSE, n_lag), e = e))
+  }
+  idx <- purrr::map(0:(n_lag - 1), \(k) which(abs(events_obs$lag_p - k) <= bandwidth))
+  fb <- lengths(idx) < min_n
+  list(
+    pools = purrr::map2(idx, fb, \(i, f) if (f) events_obs$severity else events_obs$severity[i]),
+    n_donors = lengths(idx), fallback = fb, e = NA_real_
+  )
+}
+
 # Frequency x severity: project undiscovered counts per future cell with chain-ladder on the
-# *count* triangle, then price each projected event by resampling observed severities near that lag.
+# *count* triangle, then price each projected event by resampling observed severities (see severity_pools).
 # Parameter uncertainty is ignored by design (so expect under-coverage).
-est_freqsev <- function(inp_count, inp_amount, n_sim = 500, seed = 1L) {
-  run_safely("freq_x_sev", \(){
+est_freqsev <- function(inp_count, inp_amount, n_sim = 500, seed = 1L, pooled = c("nearby", "uplift")) {
+  pooled <- match.arg(pooled)
+  run_safely(if (pooled == "nearby") "freq_x_sev" else "freq_x_sev_uplift", \(){
     full_cum <- project_chainladder(inp_count$tri_cum)
     full_incr <- cbind(full_cum[, 1], full_cum[, -1] - full_cum[, -ncol(full_cum)])
     obs <- observed_mask(inp_count$n_origin, inp_count$n_lag)
     lambda <- full_incr * !obs
     lambda[!is.finite(lambda) | lambda < 0] <- 0
-    pools <- observed_mean_severity(inp_amount$events_obs, inp_count$n_lag)
+    sp <- severity_pools(inp_amount$events_obs, inp_count$n_lag, pooled = pooled)
+    pools <- sp$pools
     set.seed(seed)
     sims <- matrix(0, n_sim, inp_count$n_origin)
     for (i in seq_len(inp_count$n_origin)) for (k in seq_len(inp_count$n_lag)) {
@@ -186,7 +332,12 @@ est_freqsev <- function(inp_count, inp_amount, n_sim = 500, seed = 1L) {
     mean_sev <- vapply(pools, mean, numeric(1))
     by <- tibble::tibble(origin = seq_len(inp_count$n_origin), ibnr = as.numeric(lambda %*% mean_sev), se = apply(sims, 2, stats::sd))
     tot_sims <- rowSums(sims)
-    check_output(new_result(by, sum(by$ibnr), stats::sd(tot_sims), sims = tot_sims))
+    out <- check_output(new_result(by, sum(by$ibnr), stats::sd(tot_sims), sims = tot_sims))
+    # share of projected events priced from the all-event fallback pool (no nearby donors), and the fewest donors used
+    w <- colSums(lambda)
+    out$detail <- list(fallback_share = if (sum(w) > 0) sum(w[sp$fallback]) / sum(w) else NA_real_,
+                       min_donors = if (any(w > 0)) min(sp$n_donors[w > 0]) else NA_integer_, uplift = sp$e)
+    out
   })
 }
 
@@ -195,12 +346,19 @@ all_estimators <- function(inp_count, inp_amount, boot_R = 1000, seed = 1L) {
     amount = list(
       chainladder = est_chainladder(inp_amount),
       mack = est_mack(inp_amount),
+      mack_ec = est_mack_manual(inp_amount, "mack_ec"),
+      mack_last3 = est_mack_manual(inp_amount, "mack_last3", n_diag = 3),
+      bf = est_bf(inp_amount, "own", "bf"),
+      benktander = est_bf(inp_amount, "own", "benktander"),
+      bf_benchmark = est_bf(inp_amount, "benchmark", "bf"),
+      benktander_benchmark = est_bf(inp_amount, "benchmark", "benktander"),
       boot = est_boot(inp_amount, R = boot_R, seed = seed),
       clark_ldf_loglogistic = est_clark(inp_amount, "loglogistic"),
       clark_ldf_weibull = est_clark(inp_amount, "weibull"),
       clark_ldf_loglogistic_tail = est_clark(inp_amount, "loglogistic", tail = TRUE),
       clark_cc_weibull = est_clark(inp_amount, "weibull", cape_cod = TRUE),
-      freq_x_sev = est_freqsev(inp_count, inp_amount, seed = seed)
+      freq_x_sev = est_freqsev(inp_count, inp_amount, seed = seed),
+      freq_x_sev_uplift = est_freqsev(inp_count, inp_amount, seed = seed, pooled = "uplift")
     ),
     count = list(
       chainladder = est_chainladder(inp_count),

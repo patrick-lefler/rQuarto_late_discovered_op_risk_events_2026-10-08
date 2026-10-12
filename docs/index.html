@@ -20,41 +20,6 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
-/* CSS for syntax highlighting */
-html { -webkit-text-size-adjust: 100%; }
-pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
-pre > code.sourceCode > span:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
-div.sourceCode { margin: 1em 0; }
-pre.sourceCode { margin: 0; }
-@media screen {
-div.sourceCode { overflow: auto; }
-}
-@media print {
-pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
-}
-pre.numberSource code
-  { counter-reset: source-line 0; }
-pre.numberSource code > span
-  { position: relative; left: -4em; counter-increment: source-line; }
-pre.numberSource code > span > a:first-child::before
-  { content: counter(source-line);
-    position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; display: inline-block;
-    -webkit-touch-callout: none; -webkit-user-select: none;
-    -khtml-user-select: none; -moz-user-select: none;
-    -ms-user-select: none; user-select: none;
-    padding: 0 4px; width: 4em;
-  }
-pre.numberSource { margin-left: 3em;  padding-left: 4px; }
-div.sourceCode
-  {   }
-@media screen {
-pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
-}
 </style>
 
 
@@ -144,6 +109,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <a class="nav-link" href="./reproducibility.html"> 
 <span class="menu-text">Reproducibility &amp; Limitations</span></a>
   </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./ml-appendix.html"> 
+<span class="menu-text">ML appendix</span></a>
+  </li>  
 </ul>
           </div> <!-- /navcollapse -->
             <div class="quarto-navbar-tools">
@@ -162,7 +131,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <ul>
   <li><a href="#the-question" id="toc-the-question" class="nav-link active" data-scroll-target="#the-question">The question</a></li>
   <li><a href="#what-we-found-under-the-assumed-generator" id="toc-what-we-found-under-the-assumed-generator" class="nav-link" data-scroll-target="#what-we-found-under-the-assumed-generator">What we found (under the assumed generator)</a></li>
-  <li><a href="#what-this-means-for-a-coo-or-cro-conditional-on-the-above" id="toc-what-this-means-for-a-coo-or-cro-conditional-on-the-above" class="nav-link" data-scroll-target="#what-this-means-for-a-coo-or-cro-conditional-on-the-above">What this means for a COO or CRO (conditional on the above)</a></li>
+  <li><a href="#what-this-means-for-a-coo-or-cro-conditional-on-the-above" id="toc-what-this-means-for-a-coo-or-cro-conditional-on-the-above" class="nav-link" data-scroll-target="#what-this-means-for-a-coo-or-cro-conditional-on-the-above">What this means for a COO or CRO (conditional on the above)</a>
+  <ul class="collapse">
+  <li><a href="#which-method-for-which-event-type" id="toc-which-method-for-which-event-type" class="nav-link" data-scroll-target="#which-method-for-which-event-type">Which method for which event type</a></li>
+  </ul></li>
   <li><a href="#sec-problem" id="toc-sec-problem" class="nav-link" data-scroll-target="#sec-problem">The problem in pictures</a>
   <ul class="collapse">
   <li><a href="#why-recent-periods-look-clean" id="toc-why-recent-periods-look-clean" class="nav-link" data-scroll-target="#why-recent-periods-look-clean">Why recent periods look clean</a></li>
@@ -211,16 +183,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <section id="the-question" class="level2">
 <h2 class="anchored" data-anchor-id="the-question">The question</h2>
-<p>Operational losses such as trade errors, NAV pricing errors and unauthorized trading are often found long after they happen, and the loss database records them when they are found. So recent periods look cleaner than they are. This is the actuarial incurred-but-not-reported (IBNR) problem, and run-off triangles from the <code>ChainLadder</code> R package are a natural way to estimate what is missing.</p>
+<p>Operational losses such as trade errors, NAV pricing errors and unauthorized trading are often found long after they happen, and the loss database records them when they are found. So recent periods look cleaner than they are. This is the actuarial incurred-but-not-reported (IBNR) problem, and run-off triangles, analysed with the <code>ChainLadder</code> R package, are a natural way to estimate what is missing. Losses are booked in full when discovered, so this is a pure IBNR problem: it does not model later development on events already known (provisions, recoveries, insurance; see <a href="./reproducibility.html#sec-limitations">Limitations</a>).</p>
 </section>
 <section id="what-we-found-under-the-assumed-generator" class="level2">
 <h2 class="anchored" data-anchor-id="what-we-found-under-the-assumed-generator">What we found (under the assumed generator)</h2>
 <ol type="1">
-<li><p><strong>Recent reported losses understate the truth, a lot for slow-to-detect events.</strong> For the latest four quarters, the share of true incurred loss not yet in the database averages 11% for trade errors, 59% for NAV errors and 87% for unauthorized trading. (<a href="#sec-problem">pictures below</a>)</p></li>
-<li><p><strong>Standard methods work only where events are plentiful.</strong> Mack and bootstrap chain-ladder are close to unbiased for trade errors (1% relative bias) and acceptable for NAV errors (10% for Mack), whose 95% intervals cover the truth 92% of the time. (<a href="./results.html#sec-validation">Results</a>)</p></li>
-<li><p><strong>For rare, heavy-tailed unauthorized trading, they mostly cannot run.</strong> Mack was usable in 0 of 200 databases. A frequency x severity approach gives a usable estimate (relative bias -4%) but its 95% intervals cover only 63%. About 40% of the true undiscovered loss lies beyond the 10-year window. (<a href="./results.html#sec-amounts">Results</a>)</p></li>
-<li><p><strong>A control improvement fools development methods.</strong> If detection gets faster, methods trained on the slower past keep predicting development that no longer occurs. (<a href="./results.html#sec-stress">Results</a>)</p></li>
-<li><p><strong>Faster detection helps the tail more than the mean.</strong> Expected annual loss is $6.0M (12 bps of a $5B firm). The two example controls save $502.30K and $735.12K a year against assumed costs of $400.0K and $700.0K: close to break-even on the mean, with 95% expected shortfall falling from $31.8M to $26.8M and $23.4M. These depend entirely on assumed effects. (<a href="./controls.html">Control value</a>)</p></li>
+<li><p><strong>Recent reported losses understate the truth, a lot for slow-to-detect events.</strong> For the latest four quarters, the share of true incurred loss not yet in the database averages 11% for trade errors, 59% for NAV errors and 87% for unauthorized trading. For unauthorized trading the typical (median) database has 100% of that loss still unrecorded, so in a typical year none of it has been found yet. (<a href="#sec-problem">pictures below</a>)</p></li>
+<li><p><strong>Standard methods work only where events are plentiful.</strong> Mack and bootstrap chain-ladder are close to unbiased for trade errors (1% and 2% relative bias) and acceptable for NAV errors (10% for Mack). Their 95% intervals are somewhat too narrow: Mack covers the truth 94% of the time for trade errors and 92% for NAV errors, while bootstrap covers 86% and 90%. (<a href="./results.html#sec-validation">Results</a>)</p></li>
+<li><p><strong>For rare, heavy-tailed unauthorized trading, the standard package implementations mostly cannot run.</strong> Mack was usable in 0 of 200 databases. That is a limit of the <code>MackChainLadder()</code> implementation on triangles with empty development columns. Setting those factors to 1 makes Mack run (200 of 200), but its relative bias is 866%, its median error -42% and its interval coverage 43%; Bornhuetter-Ferguson with an external development pattern is better in the median (14%) but has no interval and is unstable in the mean. A frequency x severity approach gives a usable estimate (relative bias -4%) but its 95% intervals cover only 63%. Only 2.7% of unauthorized-trading events are discovered after the 10-year window, yet they carry about 40% of the true undiscovered loss, because loss grows while an event stays hidden (up to 4.2 times the initial size at lag 40). (<a href="./results.html#sec-amounts">Results</a>)</p></li>
+<li><p><strong>A control improvement fools development methods.</strong> If detection gets faster, methods trained on the slower past keep predicting development that no longer occurs. After the improvement, Mack’s mean estimate of undiscovered loss is $153.4K for trade errors against a true $94.46K, and $3.1M for NAV errors against a true $1.6M. Restricting the development factors to the latest three diagonals removes most of the trade-error gap. (<a href="./results.html#sec-stress">Results</a>)</p></li>
+<li><p><strong>Faster detection mainly buys earlier information; the dollar savings rest on one assumption.</strong> Expected annual loss is $6.0M (12 bps of a $5B firm). The two example controls save $502.30K and $735.12K a year against assumed costs of $400.0K and $700.0K: close to break-even on the mean, with 95% expected shortfall falling from $31.8M to $26.8M and $23.4M (the reduction under reconciliation automation has a paired 95% bootstrap interval of $3.0M to $7.4M). Both the mean and the tail savings exist only because simulated losses grow while undiscovered (0.02 to 0.08 per quarter in this model); with no growth both vanish. What remains is earlier information: undiscovered loss at year 10 falls from $12.6M to $6.3M and $4.5M. (<a href="./controls.html">Control value</a>)</p></li>
 </ol>
 </section>
 <section id="what-this-means-for-a-coo-or-cro-conditional-on-the-above" class="level2">
@@ -229,8 +201,38 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li>Treat the most recent year of loss data for slow-detection event types as incomplete, and say so when reporting trends.</li>
 <li>Do not apply a standard development method blindly to rare, large-loss events; use a frequency-severity view and an explicit tail assumption.</li>
 <li>Judge a detection control by <strong>how much of its promised lag reduction it must deliver to break even</strong>, not by a single point ROI.</li>
+<li>Check how your loss data feeds capital and compensation. For banks, the Basel III Standardised Approach (SMA) builds its Loss Component from about ten years of internal loss data, so late-discovered losses enter by date of accounting and the latest years understate exposure. For asset managers, NAV-error compensation is recognised when the error is found, so the most recent loss trend understates exposure in the same way. Confirm the exact treatment against your own regulator’s rules.</li>
 </ul>
+<section id="which-method-for-which-event-type" class="level3">
+<h3 class="anchored" data-anchor-id="which-method-for-which-event-type">Which method for which event type</h3>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Event type</th>
+<th>What the tests support</th>
+<th>Not supported</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Trade errors</td>
+<td>Mack or bootstrap chain-ladder; treat intervals as slightly narrow</td>
+<td>Clark curves (degenerate fits; see <a href="./results.html#sec-amounts">Results</a>)</td>
+</tr>
+<tr class="even">
+<td>NAV errors</td>
+<td>Mack, with bootstrap or Bornhuetter-Ferguson as a cross-check; Clark Cape Cod also scores well here but fails badly on trade errors</td>
+<td>Reading intervals as exact 95%</td>
+</tr>
+<tr class="odd">
+<td>Unauthorized trading</td>
+<td>Frequency x severity plus an explicit tail assumption, reported with a wide caveat</td>
+<td>Standard package chain-ladder (no usable fits); Exposure-based methods such as Bornhuetter-Ferguson are not yet tested here</td>
+</tr>
+</tbody>
+</table>
 <p>To use this on real data you would replace each assumed parameter as listed under <a href="./reproducibility.html#sec-limitations">Limitations</a>; the <a href="./reproducibility.html">Reproducibility</a> page shows how to rebuild everything.</p>
+</section>
 </section>
 <section id="sec-problem" class="level2">
 <h2 class="anchored" data-anchor-id="sec-problem">The problem in pictures</h2>
@@ -243,12 +245,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h3 class="anchored" data-anchor-id="one-synthetic-database-as-a-triangle">One synthetic database, as a triangle</h3>
 <p>Rows are origin periods (years), columns are discovery lags (years after origin). A cell holds the loss from events that originated in that row and were discovered that many years later. The database can only fill the upper-left; the lower-right (orange) is real loss that exists but has not been discovered.</p>
 <div class="cell">
-<details class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>events <span class="ot">&lt;-</span> <span class="fu">simulate_database</span>(pb, <span class="at">rep =</span> <span class="dv">1</span>)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>sq <span class="ot">&lt;-</span> <span class="fu">build_square</span>(events, <span class="st">"nav_error"</span>, <span class="st">"amount"</span>, n_o, n_l, <span class="at">period =</span> <span class="dv">4</span>)<span class="sc">$</span>square</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_triangle</span>(sq, <span class="st">"NAV errors: recorded vs. not yet discovered"</span>, <span class="st">"Loss"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
 <div class="cell-output-display">
 <div id="fig-triangle" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
@@ -267,26 +263,6 @@ Figure&nbsp;1: NAV-error losses, one simulated database, annual granularity. The
 <h3 class="anchored" data-anchor-id="the-artifact-reported-losses-fall-true-losses-do-not">The artifact: reported losses fall, true losses do not</h3>
 <p>Averaging 100 simulated databases, the figure below compares what the database <em>reports</em> for each origin quarter with the true incurred loss. The gap opens in the last few years and is widest for the event types with the longest detection lags.</p>
 <div class="cell">
-<details class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>by_origin <span class="ot">&lt;-</span> parallel<span class="sc">::</span><span class="fu">mclapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">100</span>, \(r) {</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">simulate_database</span>(pb, <span class="at">rep =</span> r) <span class="sc">|&gt;</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarise</span>(<span class="at">incurred =</span> <span class="fu">sum</span>(severity), <span class="at">reported =</span> <span class="fu">sum</span>(severity[origin <span class="sc">+</span> lag <span class="sc">&lt;=</span> n_o]), <span class="at">.by =</span> <span class="fu">c</span>(type, origin))</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>}, <span class="at">mc.cores =</span> <span class="fu">max</span>(<span class="dv">1</span>L, parallel<span class="sc">::</span><span class="fu">detectCores</span>() <span class="sc">-</span> <span class="dv">2</span>L)) <span class="sc">|&gt;</span></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bind_rows</span>() <span class="sc">|&gt;</span></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="fu">across</span>(<span class="fu">c</span>(incurred, reported), mean), <span class="at">.by =</span> <span class="fu">c</span>(type, origin)) <span class="sc">|&gt;</span></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">type =</span> <span class="fu">factor</span>(type_lab[type], <span class="at">levels =</span> type_lab))</span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(by_origin, <span class="fu">aes</span>(origin)) <span class="sc">+</span></span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_area</span>(<span class="fu">aes</span>(<span class="at">y =</span> reported, <span class="at">fill =</span> type), <span class="at">alpha =</span> <span class="fl">0.55</span>) <span class="sc">+</span></span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">y =</span> incurred, <span class="at">colour =</span> type), <span class="at">linewidth =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>type, <span class="at">ncol =</span> <span class="dv">1</span>, <span class="at">scales =</span> <span class="st">"free_y"</span>) <span class="sc">+</span></span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> type_col, <span class="at">guide =</span> <span class="st">"none"</span>) <span class="sc">+</span></span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_colour_manual</span>(<span class="at">values =</span> type_col, <span class="at">guide =</span> <span class="st">"none"</span>) <span class="sc">+</span></span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> fmt_usd) <span class="sc">+</span></span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Origin quarter"</span>, <span class="at">y =</span> <span class="st">"Mean loss per origin quarter"</span>, <span class="at">title =</span> <span class="st">"Reported losses understate recent incurred losses"</span>) <span class="sc">+</span></span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_op</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
 <div class="cell-output-display">
 <div id="fig-gap" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
@@ -299,12 +275,6 @@ Figure&nbsp;2: Mean loss by origin quarter over 100 simulated databases: true in
 </figure>
 </div>
 </div>
-</div>
-<div class="cell">
-<details class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>gm <span class="ot">&lt;-</span> <span class="fu">setNames</span>(gap<span class="sc">$</span>median_understatement, gap<span class="sc">$</span>type)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
 </div>
 <p>For the latest four origin quarters in the baseline scenario, the share of true incurred loss that is not yet in the database averages <strong>11%</strong> for trade errors, <strong>59%</strong> for NAV errors and <strong>87%</strong> for unauthorized trading (median 100%). These shares depend on the assumed lag distributions (see <a href="./data.html">Synthetic Data</a>); they illustrate the mechanism, not any real firm.</p>
 </section>

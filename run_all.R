@@ -7,6 +7,7 @@ run <- function(...) {
 }
 # 1. main simulations (CRAN ChainLadder)
 run("run_simulations.R")
+run("run_boot_variants.R")
 # 2. experimental mlReserve fork, installed in an isolated library outside renv
 if (!file.exists("lib_mlreserve/ChainLadder/DESCRIPTION")) {
   run("--no-init-file", "install_mlreserve.R", shQuote(getwd()))

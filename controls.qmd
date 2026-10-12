@@ -11,9 +11,12 @@ res <- load_results()
 params <- load_params()
 aum <- params$firm$aum_usd
 ctl <- summarise_controls(res$ctl, params)
+tail_ci <- res$ctl_tail
+sens <- res$ctl_sens
+tdiff <- res$ctl_tail_diff
 ```
 
-Faster detection has value because (i) loss is recorded sooner, which improves information, and (ii) in this simulator an event's size grows with the time it stays undiscovered. This page measures how much a detection control is worth **under those assumptions**. The effect sizes and costs are placeholders, not benchmarks; a real engagement would replace them with measured detection times and quoted prices.
+Faster detection has value because (i) loss is recorded sooner, which improves information, and (ii) in this simulator an event's size grows linearly with the time it stays undiscovered, through the factor $(1 + e \times \text{lag})$. **Channel (ii) is the only way a control changes incurred loss**; if $e = 0$, mean and tail incurred loss are identical with and without the control, and only the information value in (i) remains. This page measures how much a detection control is worth **under those assumptions**. The effect sizes and costs are placeholders, not benchmarks; a real engagement would replace them with measured detection times and quoted prices.
 
 ## The two controls
 
@@ -40,7 +43,7 @@ ctl |>
     Arm = ctl_lab[arm],
     `Mean incurred / yr` = mean_incurred_per_year,
     `bps of AUM` = mean_incurred_per_year / aum * 1e4,
-    `Saving / yr` = mean_saving_per_year,
+    `Saving / yr` = if_else(arm == "baseline", NA_real_, mean_saving_per_year),
     `Annual cost` = annual_cost,
     `Net / yr` = net_benefit_per_year,
     `Undiscovered at year 10` = mean_undiscovered,
@@ -51,7 +54,7 @@ ctl |>
   gt::fmt_currency(-c(Arm, `bps of AUM`), decimals = 2, suffixing = TRUE) |>
   gt::fmt_number(`bps of AUM`, decimals = 1) |>
   gt::sub_missing(missing_text = "-") |>
-  gt::tab_source_note("VaR/ES are over single origin-year totals pooled across 200 databases (2,000 years). Savings are paired against the baseline arm.")
+  gt::tab_source_note("VaR/ES are over single origin-year totals pooled across 200 databases (2,000 years), so ES95 averages about 100 tail years. Savings are paired against the baseline arm. At full effectiveness the saving is also the most the control could cost and still break even.")
 ```
 
 ```{r}
@@ -60,22 +63,25 @@ r1 <- ctl |> filter(arm == "recon_automation")
 r2 <- ctl |> filter(arm == "independent_pnl_verification")
 ```
 
-On expected loss alone, both controls are close to break-even: reconciliation automation saves `r fmt_usd(r1$mean_saving_per_year, 2)` a year against a `r fmt_usd(r1$annual_cost, 2)` cost (net `r fmt_usd(r1$net_benefit_per_year, 2)`), and independent P&L verification saves `r fmt_usd(r2$mean_saving_per_year, 2)` against `r fmt_usd(r2$annual_cost, 2)` (net `r fmt_usd(r2$net_benefit_per_year, 2)`). The tail benefit is larger: 95% expected shortfall of annual loss falls from `r fmt_usd(base$annual_es95)` to `r fmt_usd(r1$annual_es95)` and `r fmt_usd(r2$annual_es95)`.
+On expected loss alone, both controls are close to break-even: reconciliation automation saves `r fmt_usd(r1$mean_saving_per_year, 2)` a year against a `r fmt_usd(r1$annual_cost, 2)` cost (net `r fmt_usd(r1$net_benefit_per_year, 2)`), and independent P&L verification saves `r fmt_usd(r2$mean_saving_per_year, 2)` against `r fmt_usd(r2$annual_cost, 2)` (net `r fmt_usd(r2$net_benefit_per_year, 2)`). Put differently, the most each control could cost and still break even at full effectiveness is its mean saving. The simulated 95% expected shortfall of annual loss falls from `r fmt_usd(base$annual_es95)` to `r fmt_usd(r1$annual_es95)` and `r fmt_usd(r2$annual_es95)`; the intervals below show how well that is pinned down. Because baseline and control share seeds, a paired bootstrap of the *reduction* is tighter than the separate intervals: ES95 falls by `r fmt_usd(tdiff$es95_reduction[tdiff$arm == "recon_automation"])` (95% interval `r fmt_usd(tdiff$es95_reduction_lo[tdiff$arm == "recon_automation"])` to `r fmt_usd(tdiff$es95_reduction_hi[tdiff$arm == "recon_automation"])`) under reconciliation automation and by `r fmt_usd(tdiff$es95_reduction[tdiff$arm == "independent_pnl_verification"])` (`r fmt_usd(tdiff$es95_reduction_lo[tdiff$arm == "independent_pnl_verification"])` to `r fmt_usd(tdiff$es95_reduction_hi[tdiff$arm == "independent_pnl_verification"])`) under independent P&L verification. Both the mean and the tail savings come from the same severity-growth mechanism (see the [sensitivity](#sec-sensitivity) below).
 
 ```{r}
 #| label: fig-tail
-#| fig-height: 3.6
-ctl |>
-  select(arm, `95% VaR` = annual_var95, `95% ES` = annual_es95) |>
-  pivot_longer(-arm) |>
+#| fig-height: 3.8
+#| fig-cap: "Pooled single-year loss. Error bars: 95% percentile bootstrap over the 200 databases."
+bind_rows(
+  tail_ci |> transmute(arm, stat = "95% VaR", value = var95, lo = var95_lo, hi = var95_hi),
+  tail_ci |> transmute(arm, stat = "95% ES", value = es95, lo = es95_lo, hi = es95_hi)
+) |>
   mutate(arm = factor(arm, levels = names(ctl_lab))) |>
   ggplot(aes(arm, value, fill = arm)) +
   geom_col(width = 0.65) +
-  facet_wrap(~name) +
+  geom_errorbar(aes(ymin = lo, ymax = hi), width = 0.2) +
+  facet_wrap(~stat) +
   scale_fill_manual(values = c(baseline = "grey60", ctl_col), guide = "none") +
   scale_y_continuous(labels = fmt_usd) +
   scale_x_discrete(labels = \(x) str_wrap(ctl_lab[x], 14)) +
-  labs(x = NULL, y = "Annual loss", title = "Faster detection thins the tail more than it moves the mean") +
+  labs(x = NULL, y = "Annual loss", title = "Tail loss under each control", subtitle = "ES rests on about 100 tail years out of 2,000, so it is the noisier statistic") +
   theme_op()
 ```
 
@@ -102,17 +108,58 @@ ggplot(be$curve, aes(scale, net, colour = control)) +
 ```{r}
 #| label: be-table
 be$break_even |>
-  mutate(Control = ctl_lab[control], `Break-even effectiveness` = break_even_scale) |>
-  select(Control, `Break-even effectiveness`) |>
+  mutate(control = factor(control, levels = names(ctl_lab))) |>
+  arrange(control) |>
+  left_join(ctl |> select(control = arm, mean_saving_per_year, annual_cost) |> mutate(control = factor(control, levels = names(ctl_lab))), by = "control") |>
+  mutate(Control = ctl_lab[as.character(control)]) |>
+  select(Control, `Break-even effectiveness` = break_even_scale, `Assumed annual cost` = annual_cost, `Max cost at break-even (full effect)` = mean_saving_per_year) |>
   gt::gt() |>
   gt::fmt_percent(`Break-even effectiveness`, decimals = 0) |>
+  gt::fmt_currency(c(`Assumed annual cost`, `Max cost at break-even (full effect)`), decimals = 0, suffixing = TRUE) |>
   gt::sub_missing(missing_text = "not reached on grid")
 ```
 
 The band reflects Monte Carlo error only. It does **not** include uncertainty in the cost, the lag shift, or the severity-growth assumption, which are likely larger.
 
+## Sensitivity to severity growth {#sec-sensitivity}
+
+Every dollar saving on this page flows through the severity-growth parameter $e$. The study was re-run with $e$ multiplied by 0, 0.5, 1 (as assumed) and 1.5, using the same seeds.
+
+```{r}
+#| label: fig-sens
+#| fig-height: 3.8
+#| fig-cap: "Paired mean saving and ES95 reduction against the multiplier on severity growth e (1 = as assumed)."
+base_es <- sens |> filter(arm == "baseline") |> select(e_mult, base_es = annual_es95)
+sens |>
+  filter(arm != "baseline") |>
+  left_join(base_es, by = "e_mult") |>
+  transmute(e_mult, Control = ctl_lab[arm], `Mean saving / yr` = mean_saving_per_year, `ES95 reduction` = base_es - annual_es95) |>
+  pivot_longer(c(`Mean saving / yr`, `ES95 reduction`), names_to = "Measure") |>
+  ggplot(aes(e_mult, value, colour = Control)) +
+  geom_hline(yintercept = 0, colour = "grey40") +
+  geom_line(linewidth = 0.9) +
+  geom_point() +
+  facet_wrap(~Measure, scales = "free_y") +
+  scale_colour_manual(values = setNames(ctl_col, ctl_lab[names(ctl_col)]), name = NULL) +
+  scale_y_continuous(labels = fmt_usd) +
+  labs(x = "Multiplier on severity growth e (0 = losses do not grow while undiscovered)", y = NULL) +
+  theme_op()
+```
+
+```{r}
+#| label: sens-text
+s0 <- sens |> filter(e_mult == 0, arm != "baseline")
+```
+
+With $e = 0$ the paired saving is `r fmt_usd(min(abs(s0$mean_saving_per_year)), 2)` to `r fmt_usd(max(abs(s0$mean_saving_per_year)), 2)` a year: any value that is not exactly zero is a simulation artefact (paired runs share event counts and severities, so with $e = 0$ incurred loss should be identical). The tail reduction vanishes in the same way.
+
+## Information value {#sec-information}
+
+The cleanest benefit that does not depend on severity growth is **earlier information**. At the evaluation date, the loss that has already happened but is not yet in the database falls from `r fmt_usd(base$mean_undiscovered)` to `r fmt_usd(r1$mean_undiscovered)` under reconciliation automation and `r fmt_usd(r2$mean_undiscovered)` under independent P&L verification. A smaller undiscovered balance means the reported loss trend is closer to the true one, and the loss data a firm uses for capital, board reporting or allocator disclosure is less incomplete. This benefit is not converted to dollars here, because its value depends on how the firm uses the data.
+
 ## Caveats specific to this page
 
-- Savings arise only through the assumed link between time undiscovered and loss size. If real losses do not grow while undiscovered, the mean saving is much smaller, and the case rests on tail reduction and information value.
+- Incurred loss changes under a control only through the severity-growth term $(1 + e \times \text{lag})$. If losses do not grow while undiscovered ($e = 0$), **neither the mean nor the tail of incurred loss changes**; the only benefit left is earlier information, shown above as undiscovered loss at year 10.
 - Control cost is a single annual figure with no ramp-up, no false-positive workload and no risk of the control failing.
+- Losses are gross. Loss-event insurance, recoveries from counterparties and compensation that is later clawed back would reduce net losses and therefore net savings.
 - No discounting, no correlation with market stress, and no regulatory or reputational effects are modelled.

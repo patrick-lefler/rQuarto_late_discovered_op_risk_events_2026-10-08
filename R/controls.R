@@ -101,3 +101,60 @@ break_even_scale <- function(curve) {
       .by = control
     )
 }
+
+# Rescale the severity-growth parameter e (lag_elasticity) of every event type by `mult` and re-run the paired control study.
+# With mult = 0 incurred loss cannot depend on detection speed, so any saving that remains is simulation noise.
+run_control_sensitivity <- function(params, mults = c(0, 0.5, 1, 1.5), n_reps = params$replication$n_reps, n_cores = 1L) {
+  purrr::map(mults, \(m) {
+    p <- params
+    for (nm in names(p$event_types)) p$event_types[[nm]]$severity$lag_elasticity <- m * p$event_types[[nm]]$severity$lag_elasticity
+    study <- run_control_study(p, n_reps, n_cores)
+    summarise_controls(study, p) |> dplyr::mutate(e_mult = m, .before = 1)
+  }) |> purrr::list_rbind()
+}
+
+# Percentile bootstrap over databases (resampling whole databases, 10 years each) for the pooled single-year VaR and ES.
+tail_bootstrap <- function(study, B = 500, level = 0.95, seed = 1L) {
+  set.seed(seed)
+  by_arm <- split(study$annual, study$annual$arm)
+  purrr::imap(by_arm, \(d, arm) {
+    reps <- sort(unique(d$rep))
+    per_rep <- split(d$incurred, factor(d$rep, levels = reps))
+    stat <- \(x) {
+      v <- stats::quantile(x, level, names = FALSE)
+      c(var = v, es = mean(x[x >= v]))
+    }
+    point <- stat(d$incurred)
+    boot <- replicate(B, stat(unlist(per_rep[sample(seq_along(per_rep), replace = TRUE)], use.names = FALSE)))
+    tibble::tibble(
+      arm = arm,
+      var95 = point[["var"]], var95_lo = stats::quantile(boot["var", ], 0.025, names = FALSE), var95_hi = stats::quantile(boot["var", ], 0.975, names = FALSE),
+      es95 = point[["es"]], es95_lo = stats::quantile(boot["es", ], 0.025, names = FALSE), es95_hi = stats::quantile(boot["es", ], 0.975, names = FALSE)
+    )
+  }) |> purrr::list_rbind()
+}
+
+# Paired percentile bootstrap of the tail reduction (baseline minus control) in pooled single-year VaR and ES:
+# the same resampled databases are used for the baseline and the control arm, so shared seeds cancel.
+tail_reduction_bootstrap <- function(study, B = 500, level = 0.95, seed = 1L) {
+  set.seed(seed)
+  a <- study$annual
+  reps <- sort(unique(a$rep))
+  by_arm <- split(a, a$arm)
+  per_rep <- purrr::map(by_arm, \(d) split(d$incurred, factor(d$rep, levels = reps)))
+  stat <- \(x) {
+    v <- stats::quantile(x, level, names = FALSE)
+    c(var = v, es = mean(x[x >= v]))
+  }
+  draws <- replicate(B, sample(seq_along(reps), replace = TRUE), simplify = FALSE)
+  pick <- \(arm, idx) unlist(per_rep[[arm]][idx], use.names = FALSE)
+  purrr::map(setdiff(names(by_arm), "baseline"), \(arm) {
+    point <- stat(pick("baseline", seq_along(reps))) - stat(pick(arm, seq_along(reps)))
+    boot <- vapply(draws, \(idx) stat(pick("baseline", idx)) - stat(pick(arm, idx)), numeric(2))
+    tibble::tibble(
+      arm = arm,
+      var95_reduction = point[["var"]], var95_reduction_lo = stats::quantile(boot["var", ], 0.025, names = FALSE), var95_reduction_hi = stats::quantile(boot["var", ], 0.975, names = FALSE),
+      es95_reduction = point[["es"]], es95_reduction_lo = stats::quantile(boot["es", ], 0.025, names = FALSE), es95_reduction_hi = stats::quantile(boot["es", ], 0.975, names = FALSE)
+    )
+  }) |> purrr::list_rbind()
+}

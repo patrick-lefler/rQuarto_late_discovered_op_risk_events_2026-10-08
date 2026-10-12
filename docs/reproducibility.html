@@ -104,6 +104,35 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   }
 }</script>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 </head>
 
@@ -143,6 +172,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li class="nav-item">
     <a class="nav-link active" href="./reproducibility.html" aria-current="page"> 
 <span class="menu-text">Reproducibility &amp; Limitations</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./ml-appendix.html"> 
+<span class="menu-text">ML appendix</span></a>
   </li>  
 </ul>
           </div> <!-- /navcollapse -->
@@ -200,7 +233,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>This page documents how to rebuild every number on the site, and checks a few of those claims live each time it is rendered.</p>
+<p>This page documents how to rebuild every number on the site, and checks a few of those claims live: the tests, the environment status and the parameter staleness check re-run every time this page is rendered (it is excluded from the project-wide <code>freeze: auto</code> cache).</p>
 <section id="one-command" class="level2">
 <h2 class="anchored" data-anchor-id="one-command">One command</h2>
 <p>From a clean clone:</p>
@@ -214,30 +247,30 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tibble</span>(</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">Item =</span> <span class="fu">c</span>(<span class="st">"R"</span>, <span class="st">"Platform"</span>, <span class="st">"ChainLadder (CRAN, used for all headline results)"</span>, <span class="st">"mlReserve fork (isolated library)"</span>, <span class="st">"Fork commit"</span>, <span class="st">"Quarto"</span>),</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">Value =</span> <span class="fu">c</span>(R.version.string, R.version<span class="sc">$</span>platform, <span class="fu">as.character</span>(<span class="fu">packageVersion</span>(<span class="st">"ChainLadder"</span>)),</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">Item =</span> <span class="fu">c</span>(<span class="st">"Rendered"</span>, <span class="st">"Project git commit"</span>, <span class="st">"R"</span>, <span class="st">"Platform"</span>, <span class="st">"ChainLadder (CRAN, used for all headline results)"</span>, <span class="st">"mlReserve fork (isolated library)"</span>, <span class="st">"Fork commit"</span>, <span class="st">"Quarto"</span>),</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">Value =</span> <span class="fu">c</span>(<span class="fu">format</span>(<span class="fu">Sys.time</span>(), <span class="st">"%Y-%m-%d %H:%M %Z"</span>), <span class="fu">git_state</span>(), R.version.string, R.version<span class="sc">$</span>platform, <span class="fu">as.character</span>(<span class="fu">packageVersion</span>(<span class="st">"ChainLadder"</span>)),</span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>            <span class="fu">readRDS</span>(<span class="st">"data/mlreserve.rds"</span>)<span class="sc">$</span>fork_version, <span class="fu">readRDS</span>(<span class="st">"data/mlreserve.rds"</span>)<span class="sc">$</span>commit,</span>
 <span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>            <span class="fu">trimws</span>(<span class="fu">system2</span>(<span class="st">"quarto"</span>, <span class="st">"--version"</span>, <span class="at">stdout =</span> <span class="cn">TRUE</span>)))</span>
 <span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span> gt<span class="sc">::</span><span class="fu">gt</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
-<div id="wtaxzmrtol" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#wtaxzmrtol table {
+<div id="shktfnuwmw" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#shktfnuwmw table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#wtaxzmrtol thead, #wtaxzmrtol tbody, #wtaxzmrtol tfoot, #wtaxzmrtol tr, #wtaxzmrtol td, #wtaxzmrtol th {
+#shktfnuwmw thead, #shktfnuwmw tbody, #shktfnuwmw tfoot, #shktfnuwmw tr, #shktfnuwmw td, #shktfnuwmw th {
   border-style: none;
 }
 
-#wtaxzmrtol p {
+#shktfnuwmw p {
   margin: 0;
   padding: 0;
 }
 
-#wtaxzmrtol .gt_table {
+#shktfnuwmw .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -263,12 +296,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-left-color: #D3D3D3;
 }
 
-#wtaxzmrtol .gt_caption {
+#shktfnuwmw .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#wtaxzmrtol .gt_title {
+#shktfnuwmw .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -280,7 +313,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-bottom-width: 0;
 }
 
-#wtaxzmrtol .gt_subtitle {
+#shktfnuwmw .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -292,7 +325,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-top-width: 0;
 }
 
-#wtaxzmrtol .gt_heading {
+#shktfnuwmw .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -304,13 +337,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-right-color: #D3D3D3;
 }
 
-#wtaxzmrtol .gt_bottom_border {
+#shktfnuwmw .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#wtaxzmrtol .gt_col_headings {
+#shktfnuwmw .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -325,7 +358,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-right-color: #D3D3D3;
 }
 
-#wtaxzmrtol .gt_col_heading {
+#shktfnuwmw .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -345,7 +378,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   overflow-x: hidden;
 }
 
-#wtaxzmrtol .gt_column_spanner_outer {
+#shktfnuwmw .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -357,15 +390,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   padding-right: 4px;
 }
 
-#wtaxzmrtol .gt_column_spanner_outer:first-child {
+#shktfnuwmw .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#wtaxzmrtol .gt_column_spanner_outer:last-child {
+#shktfnuwmw .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#wtaxzmrtol .gt_column_spanner {
+#shktfnuwmw .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -377,11 +410,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   width: 100%;
 }
 
-#wtaxzmrtol .gt_spanner_row {
+#shktfnuwmw .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#wtaxzmrtol .gt_group_heading {
+#shktfnuwmw .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -407,7 +440,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   text-align: left;
 }
 
-#wtaxzmrtol .gt_empty_group_heading {
+#shktfnuwmw .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -422,15 +455,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   vertical-align: middle;
 }
 
-#wtaxzmrtol .gt_from_md > :first-child {
+#shktfnuwmw .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#wtaxzmrtol .gt_from_md > :last-child {
+#shktfnuwmw .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#wtaxzmrtol .gt_row {
+#shktfnuwmw .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -449,7 +482,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   overflow-x: hidden;
 }
 
-#wtaxzmrtol .gt_stub {
+#shktfnuwmw .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -462,7 +495,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   padding-right: 5px;
 }
 
-#wtaxzmrtol .gt_stub_row_group {
+#shktfnuwmw .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -476,15 +509,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   vertical-align: top;
 }
 
-#wtaxzmrtol .gt_row_group_first td {
+#shktfnuwmw .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#wtaxzmrtol .gt_row_group_first th {
+#shktfnuwmw .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#wtaxzmrtol .gt_summary_row {
+#shktfnuwmw .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -494,16 +527,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   padding-right: 5px;
 }
 
-#wtaxzmrtol .gt_first_summary_row {
+#shktfnuwmw .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-#wtaxzmrtol .gt_first_summary_row.thick {
+#shktfnuwmw .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#wtaxzmrtol .gt_last_summary_row {
+#shktfnuwmw .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -513,7 +546,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-bottom-color: #D3D3D3;
 }
 
-#wtaxzmrtol .gt_grand_summary_row {
+#shktfnuwmw .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -523,7 +556,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   padding-right: 5px;
 }
 
-#wtaxzmrtol .gt_first_grand_summary_row {
+#shktfnuwmw .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -533,7 +566,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-top-color: #D3D3D3;
 }
 
-#wtaxzmrtol .gt_last_grand_summary_row_top {
+#shktfnuwmw .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -543,11 +576,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-bottom-color: #D3D3D3;
 }
 
-#wtaxzmrtol .gt_striped {
+#shktfnuwmw .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#wtaxzmrtol .gt_table_body {
+#shktfnuwmw .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -556,7 +589,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-bottom-color: #D3D3D3;
 }
 
-#wtaxzmrtol .gt_footnotes {
+#shktfnuwmw .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -570,7 +603,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-right-color: #D3D3D3;
 }
 
-#wtaxzmrtol .gt_footnote {
+#shktfnuwmw .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -579,7 +612,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   padding-right: 5px;
 }
 
-#wtaxzmrtol .gt_sourcenotes {
+#shktfnuwmw .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -593,7 +626,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-right-color: #D3D3D3;
 }
 
-#wtaxzmrtol .gt_sourcenote {
+#shktfnuwmw .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -601,72 +634,72 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   padding-right: 5px;
 }
 
-#wtaxzmrtol .gt_left {
+#shktfnuwmw .gt_left {
   text-align: left;
 }
 
-#wtaxzmrtol .gt_center {
+#shktfnuwmw .gt_center {
   text-align: center;
 }
 
-#wtaxzmrtol .gt_right {
+#shktfnuwmw .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#wtaxzmrtol .gt_font_normal {
+#shktfnuwmw .gt_font_normal {
   font-weight: normal;
 }
 
-#wtaxzmrtol .gt_font_bold {
+#shktfnuwmw .gt_font_bold {
   font-weight: bold;
 }
 
-#wtaxzmrtol .gt_font_italic {
+#shktfnuwmw .gt_font_italic {
   font-style: italic;
 }
 
-#wtaxzmrtol .gt_super {
+#shktfnuwmw .gt_super {
   font-size: 65%;
 }
 
-#wtaxzmrtol .gt_footnote_marks {
+#shktfnuwmw .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#wtaxzmrtol .gt_asterisk {
+#shktfnuwmw .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#wtaxzmrtol .gt_indent_1 {
+#shktfnuwmw .gt_indent_1 {
   text-indent: 5px;
 }
 
-#wtaxzmrtol .gt_indent_2 {
+#shktfnuwmw .gt_indent_2 {
   text-indent: 10px;
 }
 
-#wtaxzmrtol .gt_indent_3 {
+#shktfnuwmw .gt_indent_3 {
   text-indent: 15px;
 }
 
-#wtaxzmrtol .gt_indent_4 {
+#shktfnuwmw .gt_indent_4 {
   text-indent: 20px;
 }
 
-#wtaxzmrtol .gt_indent_5 {
+#shktfnuwmw .gt_indent_5 {
   text-indent: 25px;
 }
 
-#wtaxzmrtol .katex-display {
+#shktfnuwmw .katex-display {
   display: inline-flex !important;
   margin-bottom: 0.75em !important;
 }
 
-#wtaxzmrtol div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+#shktfnuwmw div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
   height: 0px !important;
 }
 </style>
@@ -679,6 +712,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 </thead>
 <tbody class="gt_table_body">
+<tr class="odd">
+<td class="gt_row gt_left" headers="Item">Rendered</td>
+<td class="gt_row gt_left" headers="Value">2026-10-11 20:21 EDT</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="Item">Project git commit</td>
+<td class="gt_row gt_left" headers="Value">443b8a9 (uncommitted changes)</td>
+</tr>
 <tr class="odd">
 <td class="gt_row gt_left" headers="Item">R</td>
 <td class="gt_row gt_left" headers="Value">R version 4.5.2 (2025-10-31)</td>
@@ -738,6 +779,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="parameters" class="level2">
 <h2 class="anchored" data-anchor-id="parameters">Parameters</h2>
 <p>Every simulator parameter lives in one file. <code>status: assumption</code> marks values that are plausible choices, not calibrated estimates.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>params.yaml (click to expand)
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-1" class="callout-1-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"```yaml</span><span class="sc">\n</span><span class="st">"</span>, <span class="fu">paste</span>(<span class="fu">readLines</span>(<span class="st">"params.yaml"</span>), <span class="at">collapse =</span> <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">```</span><span class="sc">\n</span><span class="st">"</span>, <span class="at">sep =</span> <span class="st">""</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -756,78 +809,92 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">n_lag</span><span class="kw">:</span><span class="at"> </span><span class="dv">40</span><span class="co">             # discovery lags 0..39 inside the window; lag &gt;= 40 is "tail"</span></span>
 <span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">status</span><span class="kw">:</span><span class="at"> assumption</span></span>
 <span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a><span class="fu">exposure</span><span class="kw">:</span></span>
-<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">base</span><span class="kw">:</span><span class="at"> </span><span class="fl">1.0</span></span>
-<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">growth_per_quarter</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.01</span><span class="co">   # ~4% p.a. volume growth; range 0 - 0.03</span></span>
-<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">status</span><span class="kw">:</span><span class="at"> assumption</span></span>
-<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a><span class="fu">replication</span><span class="kw">:</span></span>
-<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">n_reps</span><span class="kw">:</span><span class="at"> </span><span class="dv">200</span></span>
-<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">n_boot</span><span class="kw">:</span><span class="at"> </span><span class="dv">1000</span><span class="co">          # BootChainLadder resamples per triangle</span></span>
-<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">runs</span><span class="kw">:</span><span class="co">                 # scenario -&gt; granularities scored (annual = 4 quarters per period)</span></span>
-<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">baseline</span><span class="kw">:</span><span class="at"> </span><span class="kw">[</span><span class="at">annual</span><span class="kw">,</span><span class="at"> quarterly</span><span class="kw">]</span></span>
-<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">heavy_tail_shock</span><span class="kw">:</span><span class="at"> </span><span class="kw">[</span><span class="at">annual</span><span class="kw">]</span></span>
-<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">control_improvement</span><span class="kw">:</span><span class="at"> </span><span class="kw">[</span><span class="at">annual</span><span class="kw">]</span></span>
-<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">exposure_growth</span><span class="kw">:</span><span class="at"> </span><span class="kw">[</span><span class="at">annual</span><span class="kw">]</span></span>
-<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">recent_quarters</span><span class="kw">:</span><span class="at"> </span><span class="dv">4</span><span class="co">    # "recent" = latest 4 origin quarters (1 annual period)</span></span>
-<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">status</span><span class="kw">:</span><span class="at"> assumption</span></span>
-<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a><span class="fu">mlreserve</span><span class="kw">:</span><span class="co">              # experimental comparator, see mlreserve.qmd</span></span>
-<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">n_reps</span><span class="kw">:</span><span class="at"> </span><span class="dv">30</span></span>
-<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">commit</span><span class="kw">:</span><span class="at"> 30cc7a8402f29713d3f53861e42b092cbc6946f1</span><span class="co">   # thierrymoudiki/ChainLadder (fork of mages/ChainLadder)</span></span>
-<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">configs</span><span class="kw">:</span><span class="co">              # blog setting first; the rest are variants incl. the package default (factor features), all scored on the same replications</span></span>
-<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">rf_asinh_numeric</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">learner</span><span class="kw">:</span><span class="at"> ranger</span><span class="kw">,</span><span class="at"> </span><span class="fu">features</span><span class="kw">:</span><span class="at"> numeric</span><span class="kw">,</span><span class="at"> </span><span class="fu">transform</span><span class="kw">:</span><span class="at"> asinh</span><span class="kw">}</span></span>
-<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">rf_raw_numeric</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">learner</span><span class="kw">:</span><span class="at"> ranger</span><span class="kw">,</span><span class="at"> </span><span class="fu">features</span><span class="kw">:</span><span class="at"> numeric</span><span class="kw">,</span><span class="at"> </span><span class="fu">transform</span><span class="kw">:</span><span class="at"> none</span><span class="kw">}</span></span>
-<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">rf_raw_both</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">learner</span><span class="kw">:</span><span class="at"> ranger</span><span class="kw">,</span><span class="at"> </span><span class="fu">features</span><span class="kw">:</span><span class="at"> both</span><span class="kw">,</span><span class="at"> </span><span class="fu">transform</span><span class="kw">:</span><span class="at"> none</span><span class="kw">}</span></span>
-<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">rf_raw_factor</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">learner</span><span class="kw">:</span><span class="at"> ranger</span><span class="kw">,</span><span class="at"> </span><span class="fu">features</span><span class="kw">:</span><span class="at"> factor</span><span class="kw">,</span><span class="at"> </span><span class="fu">transform</span><span class="kw">:</span><span class="at"> none</span><span class="kw">}</span><span class="co">      # package default features</span></span>
-<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">svm_raw_numeric</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">learner</span><span class="kw">:</span><span class="at"> svm</span><span class="kw">,</span><span class="at"> </span><span class="fu">features</span><span class="kw">:</span><span class="at"> numeric</span><span class="kw">,</span><span class="at"> </span><span class="fu">transform</span><span class="kw">:</span><span class="at"> none</span><span class="kw">}</span></span>
-<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">svm_raw_factor</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">learner</span><span class="kw">:</span><span class="at"> svm</span><span class="kw">,</span><span class="at"> </span><span class="fu">features</span><span class="kw">:</span><span class="at"> factor</span><span class="kw">,</span><span class="at"> </span><span class="fu">transform</span><span class="kw">:</span><span class="at"> none</span><span class="kw">}</span></span>
-<span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">status</span><span class="kw">:</span><span class="at"> assumption</span></span>
-<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-43"><a href="#cb7-43" aria-hidden="true" tabindex="-1"></a><span class="fu">controls</span><span class="kw">:</span><span class="co">               # detection controls; effects are applied as shifts to the lag distribution</span></span>
-<span id="cb7-44"><a href="#cb7-44" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">recon_automation</span><span class="kw">:</span></span>
-<span id="cb7-45"><a href="#cb7-45" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">description</span><span class="kw">:</span><span class="at"> Automated daily position/cash reconciliation against prime-broker statements</span></span>
-<span id="cb7-46"><a href="#cb7-46" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">annual_cost_usd</span><span class="kw">:</span><span class="at"> </span><span class="dv">400000</span><span class="co">          # assumption; range 250k - 600k</span></span>
-<span id="cb7-47"><a href="#cb7-47" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">lag_shift</span><span class="kw">:</span></span>
-<span id="cb7-48"><a href="#cb7-48" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">nav_error</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">slow_meanlog</span><span class="kw">:</span><span class="at"> </span><span class="fl">-0.4</span><span class="kw">,</span><span class="at"> </span><span class="fu">w_fast</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.10</span><span class="kw">}</span></span>
-<span id="cb7-49"><a href="#cb7-49" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">unauthorized_trading</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">slow_meanlog</span><span class="kw">:</span><span class="at"> </span><span class="fl">-0.4</span><span class="kw">}</span></span>
-<span id="cb7-50"><a href="#cb7-50" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">status</span><span class="kw">:</span><span class="at"> assumption</span></span>
-<span id="cb7-51"><a href="#cb7-51" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">independent_pnl_verification</span><span class="kw">:</span></span>
-<span id="cb7-52"><a href="#cb7-52" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">description</span><span class="kw">:</span><span class="at"> Independent P&amp;L and limit-breach verification with prime-broker position feed</span></span>
-<span id="cb7-53"><a href="#cb7-53" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">annual_cost_usd</span><span class="kw">:</span><span class="at"> </span><span class="dv">700000</span><span class="co">          # assumption; range 400k - 1.2M</span></span>
-<span id="cb7-54"><a href="#cb7-54" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">lag_shift</span><span class="kw">:</span></span>
-<span id="cb7-55"><a href="#cb7-55" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">trade_error</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">w_fast</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.05</span><span class="kw">}</span></span>
-<span id="cb7-56"><a href="#cb7-56" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">nav_error</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">slow_meanlog</span><span class="kw">:</span><span class="at"> </span><span class="fl">-0.3</span><span class="kw">}</span></span>
-<span id="cb7-57"><a href="#cb7-57" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">unauthorized_trading</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">slow_meanlog</span><span class="kw">:</span><span class="at"> </span><span class="fl">-0.8</span><span class="kw">,</span><span class="at"> </span><span class="fu">w_fast</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.15</span><span class="kw">}</span></span>
-<span id="cb7-58"><a href="#cb7-58" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">status</span><span class="kw">:</span><span class="at"> assumption</span></span>
-<span id="cb7-59"><a href="#cb7-59" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-60"><a href="#cb7-60" aria-hidden="true" tabindex="-1"></a><span class="fu">event_types</span><span class="kw">:</span></span>
-<span id="cb7-61"><a href="#cb7-61" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">trade_error</span><span class="kw">:</span><span class="co">                       # Basel: Execution, Delivery &amp; Process Mgmt</span></span>
-<span id="cb7-62"><a href="#cb7-62" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">lambda</span><span class="kw">:</span><span class="at"> </span><span class="dv">60</span><span class="co">                       # events / quarter at exposure 1; range 30 - 120</span></span>
-<span id="cb7-63"><a href="#cb7-63" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">lag</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">w_fast</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.85</span><span class="kw">,</span><span class="at"> </span><span class="fu">p_fast</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.80</span><span class="kw">,</span><span class="at"> </span><span class="fu">slow_meanlog</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.5</span><span class="kw">,</span><span class="at"> </span><span class="fu">slow_sdlog</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.8</span><span class="kw">}</span></span>
-<span id="cb7-64"><a href="#cb7-64" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">severity</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">meanlog</span><span class="kw">:</span><span class="at"> </span><span class="fl">7.8</span><span class="kw">,</span><span class="at"> </span><span class="fu">sdlog</span><span class="kw">:</span><span class="at"> </span><span class="fl">1.2</span><span class="kw">,</span><span class="at"> </span><span class="fu">p_tail</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.03</span><span class="kw">,</span><span class="at"> </span><span class="fu">tail_q</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.95</span><span class="kw">,</span><span class="at"> </span><span class="fu">xi</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.2</span><span class="kw">,</span><span class="at"> </span><span class="fu">beta</span><span class="kw">:</span><span class="at"> </span><span class="dv">8000</span><span class="kw">,</span><span class="at"> </span><span class="fu">lag_elasticity</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.02</span><span class="kw">}</span></span>
-<span id="cb7-65"><a href="#cb7-65" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">status</span><span class="kw">:</span><span class="at"> assumption</span></span>
-<span id="cb7-66"><a href="#cb7-66" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">nav_error</span><span class="kw">:</span><span class="co">                         # Basel: EDPM / Clients, Products &amp; Business Practices</span></span>
-<span id="cb7-67"><a href="#cb7-67" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">lambda</span><span class="kw">:</span><span class="at"> </span><span class="dv">6</span><span class="co">                        # range 3 - 15</span></span>
-<span id="cb7-68"><a href="#cb7-68" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">lag</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">w_fast</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.50</span><span class="kw">,</span><span class="at"> </span><span class="fu">p_fast</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.40</span><span class="kw">,</span><span class="at"> </span><span class="fu">slow_meanlog</span><span class="kw">:</span><span class="at"> </span><span class="fl">1.5</span><span class="kw">,</span><span class="at"> </span><span class="fu">slow_sdlog</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.8</span><span class="kw">}</span></span>
-<span id="cb7-69"><a href="#cb7-69" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">severity</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">meanlog</span><span class="kw">:</span><span class="at"> </span><span class="fl">10.3</span><span class="kw">,</span><span class="at"> </span><span class="fu">sdlog</span><span class="kw">:</span><span class="at"> </span><span class="fl">1.4</span><span class="kw">,</span><span class="at"> </span><span class="fu">p_tail</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.05</span><span class="kw">,</span><span class="at"> </span><span class="fu">tail_q</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.95</span><span class="kw">,</span><span class="at"> </span><span class="fu">xi</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.3</span><span class="kw">,</span><span class="at"> </span><span class="fu">beta</span><span class="kw">:</span><span class="at"> </span><span class="dv">80000</span><span class="kw">,</span><span class="at"> </span><span class="fu">lag_elasticity</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.05</span><span class="kw">}</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a><span class="fu">reporting_threshold_usd</span><span class="kw">:</span><span class="at"> </span><span class="dv">0</span><span class="co">   # events below this loss are not recorded (collection threshold); real databases often use $10k-$20k</span></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a><span class="co">                             # status: assumption</span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a><span class="fu">exposure</span><span class="kw">:</span></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">base</span><span class="kw">:</span><span class="at"> </span><span class="fl">1.0</span></span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">growth_per_quarter</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.01</span><span class="co">   # ~4% p.a. volume growth; range 0 - 0.03</span></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">status</span><span class="kw">:</span><span class="at"> assumption</span></span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a><span class="fu">replication</span><span class="kw">:</span></span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">n_reps</span><span class="kw">:</span><span class="at"> </span><span class="dv">200</span></span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">n_boot</span><span class="kw">:</span><span class="at"> </span><span class="dv">1000</span><span class="co">          # BootChainLadder resamples per triangle</span></span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">runs</span><span class="kw">:</span><span class="co">                 # scenario -&gt; granularities scored (annual = 4 quarters per period)</span></span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">baseline</span><span class="kw">:</span><span class="at"> </span><span class="kw">[</span><span class="at">annual</span><span class="kw">,</span><span class="at"> quarterly</span><span class="kw">]</span></span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">heavy_tail_shock</span><span class="kw">:</span><span class="at"> </span><span class="kw">[</span><span class="at">annual</span><span class="kw">]</span></span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">control_improvement</span><span class="kw">:</span><span class="at"> </span><span class="kw">[</span><span class="at">annual</span><span class="kw">]</span></span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">exposure_growth</span><span class="kw">:</span><span class="at"> </span><span class="kw">[</span><span class="at">annual</span><span class="kw">]</span></span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">overdispersion</span><span class="kw">:</span><span class="at"> </span><span class="kw">[</span><span class="at">annual</span><span class="kw">]</span></span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">reporting_threshold_10k</span><span class="kw">:</span><span class="at"> </span><span class="kw">[</span><span class="at">annual</span><span class="kw">]</span></span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">recent_quarters</span><span class="kw">:</span><span class="at"> </span><span class="dv">4</span><span class="co">    # "recent" = latest 4 origin quarters (1 annual period)</span></span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">status</span><span class="kw">:</span><span class="at"> assumption</span></span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a><span class="fu">mlreserve</span><span class="kw">:</span><span class="co">              # experimental comparator, see mlreserve.qmd</span></span>
+<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">n_reps</span><span class="kw">:</span><span class="at"> </span><span class="dv">30</span></span>
+<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">commit</span><span class="kw">:</span><span class="at"> 30cc7a8402f29713d3f53861e42b092cbc6946f1</span><span class="co">   # thierrymoudiki/ChainLadder (fork of mages/ChainLadder)</span></span>
+<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">configs</span><span class="kw">:</span><span class="co">              # blog setting first; the rest are variants incl. the package default (factor features), all scored on the same replications</span></span>
+<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">rf_asinh_numeric</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">learner</span><span class="kw">:</span><span class="at"> ranger</span><span class="kw">,</span><span class="at"> </span><span class="fu">features</span><span class="kw">:</span><span class="at"> numeric</span><span class="kw">,</span><span class="at"> </span><span class="fu">transform</span><span class="kw">:</span><span class="at"> asinh</span><span class="kw">}</span></span>
+<span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">rf_raw_numeric</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">learner</span><span class="kw">:</span><span class="at"> ranger</span><span class="kw">,</span><span class="at"> </span><span class="fu">features</span><span class="kw">:</span><span class="at"> numeric</span><span class="kw">,</span><span class="at"> </span><span class="fu">transform</span><span class="kw">:</span><span class="at"> none</span><span class="kw">}</span></span>
+<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">rf_raw_both</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">learner</span><span class="kw">:</span><span class="at"> ranger</span><span class="kw">,</span><span class="at"> </span><span class="fu">features</span><span class="kw">:</span><span class="at"> both</span><span class="kw">,</span><span class="at"> </span><span class="fu">transform</span><span class="kw">:</span><span class="at"> none</span><span class="kw">}</span></span>
+<span id="cb7-43"><a href="#cb7-43" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">rf_raw_factor</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">learner</span><span class="kw">:</span><span class="at"> ranger</span><span class="kw">,</span><span class="at"> </span><span class="fu">features</span><span class="kw">:</span><span class="at"> factor</span><span class="kw">,</span><span class="at"> </span><span class="fu">transform</span><span class="kw">:</span><span class="at"> none</span><span class="kw">}</span><span class="co">      # package default features</span></span>
+<span id="cb7-44"><a href="#cb7-44" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">svm_raw_numeric</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">learner</span><span class="kw">:</span><span class="at"> svm</span><span class="kw">,</span><span class="at"> </span><span class="fu">features</span><span class="kw">:</span><span class="at"> numeric</span><span class="kw">,</span><span class="at"> </span><span class="fu">transform</span><span class="kw">:</span><span class="at"> none</span><span class="kw">}</span></span>
+<span id="cb7-45"><a href="#cb7-45" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">svm_raw_factor</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">learner</span><span class="kw">:</span><span class="at"> svm</span><span class="kw">,</span><span class="at"> </span><span class="fu">features</span><span class="kw">:</span><span class="at"> factor</span><span class="kw">,</span><span class="at"> </span><span class="fu">transform</span><span class="kw">:</span><span class="at"> none</span><span class="kw">}</span></span>
+<span id="cb7-46"><a href="#cb7-46" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">status</span><span class="kw">:</span><span class="at"> assumption</span></span>
+<span id="cb7-47"><a href="#cb7-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-48"><a href="#cb7-48" aria-hidden="true" tabindex="-1"></a><span class="fu">controls</span><span class="kw">:</span><span class="co">               # detection controls; effects are applied as shifts to the lag distribution</span></span>
+<span id="cb7-49"><a href="#cb7-49" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">recon_automation</span><span class="kw">:</span></span>
+<span id="cb7-50"><a href="#cb7-50" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">description</span><span class="kw">:</span><span class="at"> Automated daily position/cash reconciliation against prime-broker statements</span></span>
+<span id="cb7-51"><a href="#cb7-51" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">annual_cost_usd</span><span class="kw">:</span><span class="at"> </span><span class="dv">400000</span><span class="co">          # assumption; range 250k - 600k</span></span>
+<span id="cb7-52"><a href="#cb7-52" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">lag_shift</span><span class="kw">:</span></span>
+<span id="cb7-53"><a href="#cb7-53" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">nav_error</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">slow_meanlog</span><span class="kw">:</span><span class="at"> </span><span class="fl">-0.4</span><span class="kw">,</span><span class="at"> </span><span class="fu">w_fast</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.10</span><span class="kw">}</span></span>
+<span id="cb7-54"><a href="#cb7-54" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">unauthorized_trading</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">slow_meanlog</span><span class="kw">:</span><span class="at"> </span><span class="fl">-0.4</span><span class="kw">}</span></span>
+<span id="cb7-55"><a href="#cb7-55" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">status</span><span class="kw">:</span><span class="at"> assumption</span></span>
+<span id="cb7-56"><a href="#cb7-56" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">independent_pnl_verification</span><span class="kw">:</span></span>
+<span id="cb7-57"><a href="#cb7-57" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">description</span><span class="kw">:</span><span class="at"> Independent P&amp;L and limit-breach verification with prime-broker position feed</span></span>
+<span id="cb7-58"><a href="#cb7-58" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">annual_cost_usd</span><span class="kw">:</span><span class="at"> </span><span class="dv">700000</span><span class="co">          # assumption; range 400k - 1.2M</span></span>
+<span id="cb7-59"><a href="#cb7-59" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">lag_shift</span><span class="kw">:</span></span>
+<span id="cb7-60"><a href="#cb7-60" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">trade_error</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">w_fast</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.05</span><span class="kw">}</span></span>
+<span id="cb7-61"><a href="#cb7-61" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">nav_error</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">slow_meanlog</span><span class="kw">:</span><span class="at"> </span><span class="fl">-0.3</span><span class="kw">}</span></span>
+<span id="cb7-62"><a href="#cb7-62" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">unauthorized_trading</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">slow_meanlog</span><span class="kw">:</span><span class="at"> </span><span class="fl">-0.8</span><span class="kw">,</span><span class="at"> </span><span class="fu">w_fast</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.15</span><span class="kw">}</span></span>
+<span id="cb7-63"><a href="#cb7-63" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">status</span><span class="kw">:</span><span class="at"> assumption</span></span>
+<span id="cb7-64"><a href="#cb7-64" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-65"><a href="#cb7-65" aria-hidden="true" tabindex="-1"></a><span class="fu">event_types</span><span class="kw">:</span></span>
+<span id="cb7-66"><a href="#cb7-66" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">trade_error</span><span class="kw">:</span><span class="co">                       # Basel: Execution, Delivery &amp; Process Mgmt</span></span>
+<span id="cb7-67"><a href="#cb7-67" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">lambda</span><span class="kw">:</span><span class="at"> </span><span class="dv">60</span><span class="co">                       # events / quarter at exposure 1; range 30 - 120</span></span>
+<span id="cb7-68"><a href="#cb7-68" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">lag</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">w_fast</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.85</span><span class="kw">,</span><span class="at"> </span><span class="fu">p_fast</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.80</span><span class="kw">,</span><span class="at"> </span><span class="fu">slow_meanlog</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.5</span><span class="kw">,</span><span class="at"> </span><span class="fu">slow_sdlog</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.8</span><span class="kw">}</span></span>
+<span id="cb7-69"><a href="#cb7-69" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">severity</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">meanlog</span><span class="kw">:</span><span class="at"> </span><span class="fl">7.8</span><span class="kw">,</span><span class="at"> </span><span class="fu">sdlog</span><span class="kw">:</span><span class="at"> </span><span class="fl">1.2</span><span class="kw">,</span><span class="at"> </span><span class="fu">p_tail</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.03</span><span class="kw">,</span><span class="at"> </span><span class="fu">tail_q</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.95</span><span class="kw">,</span><span class="at"> </span><span class="fu">xi</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.2</span><span class="kw">,</span><span class="at"> </span><span class="fu">beta</span><span class="kw">:</span><span class="at"> </span><span class="dv">8000</span><span class="kw">,</span><span class="at"> </span><span class="fu">lag_elasticity</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.02</span><span class="kw">}</span></span>
 <span id="cb7-70"><a href="#cb7-70" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">status</span><span class="kw">:</span><span class="at"> assumption</span></span>
-<span id="cb7-71"><a href="#cb7-71" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">unauthorized_trading</span><span class="kw">:</span><span class="co">              # Basel: Internal Fraud (incl. limit and mandate breaches)</span></span>
-<span id="cb7-72"><a href="#cb7-72" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">lambda</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.3</span><span class="co">                      # ~1.2 per year; range 0.1 - 0.8</span></span>
-<span id="cb7-73"><a href="#cb7-73" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">lag</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">w_fast</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.10</span><span class="kw">,</span><span class="at"> </span><span class="fu">p_fast</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.30</span><span class="kw">,</span><span class="at"> </span><span class="fu">slow_meanlog</span><span class="kw">:</span><span class="at"> </span><span class="fl">2.0</span><span class="kw">,</span><span class="at"> </span><span class="fu">slow_sdlog</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.9</span><span class="kw">}</span></span>
-<span id="cb7-74"><a href="#cb7-74" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">severity</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">meanlog</span><span class="kw">:</span><span class="at"> </span><span class="fl">12.4</span><span class="kw">,</span><span class="at"> </span><span class="fu">sdlog</span><span class="kw">:</span><span class="at"> </span><span class="fl">1.6</span><span class="kw">,</span><span class="at"> </span><span class="fu">p_tail</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.08</span><span class="kw">,</span><span class="at"> </span><span class="fu">tail_q</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.90</span><span class="kw">,</span><span class="at"> </span><span class="fu">xi</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.6</span><span class="kw">,</span><span class="at"> </span><span class="fu">beta</span><span class="kw">:</span><span class="at"> </span><span class="dv">1500000</span><span class="kw">,</span><span class="at"> </span><span class="fu">lag_elasticity</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.08</span><span class="kw">}</span></span>
+<span id="cb7-71"><a href="#cb7-71" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">nav_error</span><span class="kw">:</span><span class="co">                         # Basel: EDPM / Clients, Products &amp; Business Practices</span></span>
+<span id="cb7-72"><a href="#cb7-72" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">lambda</span><span class="kw">:</span><span class="at"> </span><span class="dv">6</span><span class="co">                        # range 3 - 15</span></span>
+<span id="cb7-73"><a href="#cb7-73" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">lag</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">w_fast</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.50</span><span class="kw">,</span><span class="at"> </span><span class="fu">p_fast</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.40</span><span class="kw">,</span><span class="at"> </span><span class="fu">slow_meanlog</span><span class="kw">:</span><span class="at"> </span><span class="fl">1.5</span><span class="kw">,</span><span class="at"> </span><span class="fu">slow_sdlog</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.8</span><span class="kw">}</span></span>
+<span id="cb7-74"><a href="#cb7-74" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">severity</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">meanlog</span><span class="kw">:</span><span class="at"> </span><span class="fl">10.3</span><span class="kw">,</span><span class="at"> </span><span class="fu">sdlog</span><span class="kw">:</span><span class="at"> </span><span class="fl">1.4</span><span class="kw">,</span><span class="at"> </span><span class="fu">p_tail</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.05</span><span class="kw">,</span><span class="at"> </span><span class="fu">tail_q</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.95</span><span class="kw">,</span><span class="at"> </span><span class="fu">xi</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.3</span><span class="kw">,</span><span class="at"> </span><span class="fu">beta</span><span class="kw">:</span><span class="at"> </span><span class="dv">80000</span><span class="kw">,</span><span class="at"> </span><span class="fu">lag_elasticity</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.05</span><span class="kw">}</span></span>
 <span id="cb7-75"><a href="#cb7-75" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">status</span><span class="kw">:</span><span class="at"> assumption</span></span>
-<span id="cb7-76"><a href="#cb7-76" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-77"><a href="#cb7-77" aria-hidden="true" tabindex="-1"></a><span class="fu">scenarios</span><span class="kw">:</span></span>
-<span id="cb7-78"><a href="#cb7-78" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">baseline</span><span class="kw">:</span><span class="at"> </span><span class="kw">{}</span></span>
-<span id="cb7-79"><a href="#cb7-79" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">heavy_tail_shock</span><span class="kw">:</span></span>
-<span id="cb7-80"><a href="#cb7-80" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">injected_events</span><span class="kw">:</span><span class="co">                 # absolute-dollar events added to the baseline</span></span>
-<span id="cb7-81"><a href="#cb7-81" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="kw">{</span><span class="fu">type</span><span class="kw">:</span><span class="at"> unauthorized_trading</span><span class="kw">,</span><span class="at"> </span><span class="fu">origin</span><span class="kw">:</span><span class="at"> </span><span class="dv">12</span><span class="kw">,</span><span class="at"> </span><span class="fu">lag</span><span class="kw">:</span><span class="at"> </span><span class="dv">15</span><span class="kw">,</span><span class="at"> </span><span class="fu">severity</span><span class="kw">:</span><span class="at"> </span><span class="dv">60000000</span><span class="kw">}</span></span>
-<span id="cb7-82"><a href="#cb7-82" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="kw">{</span><span class="fu">type</span><span class="kw">:</span><span class="at"> unauthorized_trading</span><span class="kw">,</span><span class="at"> </span><span class="fu">origin</span><span class="kw">:</span><span class="at"> </span><span class="dv">20</span><span class="kw">,</span><span class="at"> </span><span class="fu">lag</span><span class="kw">:</span><span class="at"> </span><span class="dv">22</span><span class="kw">,</span><span class="at"> </span><span class="fu">severity</span><span class="kw">:</span><span class="at"> </span><span class="dv">40000000</span><span class="kw">}</span></span>
-<span id="cb7-83"><a href="#cb7-83" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">control_improvement</span><span class="kw">:</span></span>
-<span id="cb7-84"><a href="#cb7-84" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">control_shift</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">calendar_quarter</span><span class="kw">:</span><span class="at"> </span><span class="dv">24</span><span class="kw">,</span><span class="at"> </span><span class="fu">reduction</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.5</span><span class="kw">}</span><span class="co">   # remaining time-to-discovery halves after Q24</span></span>
-<span id="cb7-85"><a href="#cb7-85" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">exposure_growth</span><span class="kw">:</span></span>
-<span id="cb7-86"><a href="#cb7-86" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">exposure</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">growth_per_quarter</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.03</span><span class="kw">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb7-76"><a href="#cb7-76" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">unauthorized_trading</span><span class="kw">:</span><span class="co">              # Basel: Internal Fraud (incl. limit and mandate breaches)</span></span>
+<span id="cb7-77"><a href="#cb7-77" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">lambda</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.3</span><span class="co">                      # ~1.2 per year; range 0.1 - 0.8</span></span>
+<span id="cb7-78"><a href="#cb7-78" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">lag</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">w_fast</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.10</span><span class="kw">,</span><span class="at"> </span><span class="fu">p_fast</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.30</span><span class="kw">,</span><span class="at"> </span><span class="fu">slow_meanlog</span><span class="kw">:</span><span class="at"> </span><span class="fl">2.0</span><span class="kw">,</span><span class="at"> </span><span class="fu">slow_sdlog</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.9</span><span class="kw">}</span></span>
+<span id="cb7-79"><a href="#cb7-79" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">severity</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">meanlog</span><span class="kw">:</span><span class="at"> </span><span class="fl">12.4</span><span class="kw">,</span><span class="at"> </span><span class="fu">sdlog</span><span class="kw">:</span><span class="at"> </span><span class="fl">1.6</span><span class="kw">,</span><span class="at"> </span><span class="fu">p_tail</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.08</span><span class="kw">,</span><span class="at"> </span><span class="fu">tail_q</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.90</span><span class="kw">,</span><span class="at"> </span><span class="fu">xi</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.6</span><span class="kw">,</span><span class="at"> </span><span class="fu">beta</span><span class="kw">:</span><span class="at"> </span><span class="dv">1500000</span><span class="kw">,</span><span class="at"> </span><span class="fu">lag_elasticity</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.08</span><span class="kw">}</span></span>
+<span id="cb7-80"><a href="#cb7-80" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">status</span><span class="kw">:</span><span class="at"> assumption</span></span>
+<span id="cb7-81"><a href="#cb7-81" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-82"><a href="#cb7-82" aria-hidden="true" tabindex="-1"></a><span class="fu">scenarios</span><span class="kw">:</span></span>
+<span id="cb7-83"><a href="#cb7-83" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">baseline</span><span class="kw">:</span><span class="at"> </span><span class="kw">{}</span></span>
+<span id="cb7-84"><a href="#cb7-84" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">heavy_tail_shock</span><span class="kw">:</span></span>
+<span id="cb7-85"><a href="#cb7-85" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">injected_events</span><span class="kw">:</span><span class="co">                 # absolute-dollar events added to the baseline</span></span>
+<span id="cb7-86"><a href="#cb7-86" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="kw">{</span><span class="fu">type</span><span class="kw">:</span><span class="at"> unauthorized_trading</span><span class="kw">,</span><span class="at"> </span><span class="fu">origin</span><span class="kw">:</span><span class="at"> </span><span class="dv">12</span><span class="kw">,</span><span class="at"> </span><span class="fu">lag</span><span class="kw">:</span><span class="at"> </span><span class="dv">15</span><span class="kw">,</span><span class="at"> </span><span class="fu">severity</span><span class="kw">:</span><span class="at"> </span><span class="dv">60000000</span><span class="kw">}</span></span>
+<span id="cb7-87"><a href="#cb7-87" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="kw">{</span><span class="fu">type</span><span class="kw">:</span><span class="at"> unauthorized_trading</span><span class="kw">,</span><span class="at"> </span><span class="fu">origin</span><span class="kw">:</span><span class="at"> </span><span class="dv">20</span><span class="kw">,</span><span class="at"> </span><span class="fu">lag</span><span class="kw">:</span><span class="at"> </span><span class="dv">22</span><span class="kw">,</span><span class="at"> </span><span class="fu">severity</span><span class="kw">:</span><span class="at"> </span><span class="dv">40000000</span><span class="kw">}</span></span>
+<span id="cb7-88"><a href="#cb7-88" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">control_improvement</span><span class="kw">:</span></span>
+<span id="cb7-89"><a href="#cb7-89" aria-hidden="true" tabindex="-1"></a><span class="co">    # time remaining to discovery, measured from max(origin, quarter 24), falls by `reduction` (stochastic rounding)</span></span>
+<span id="cb7-90"><a href="#cb7-90" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">control_shift</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">calendar_quarter</span><span class="kw">:</span><span class="at"> </span><span class="dv">24</span><span class="kw">,</span><span class="at"> </span><span class="fu">reduction</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.5</span><span class="kw">}</span></span>
+<span id="cb7-91"><a href="#cb7-91" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">exposure_growth</span><span class="kw">:</span></span>
+<span id="cb7-92"><a href="#cb7-92" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">exposure</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">growth_per_quarter</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.03</span><span class="kw">}</span></span>
+<span id="cb7-93"><a href="#cb7-93" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">overdispersion</span><span class="kw">:</span><span class="co">                    # negative-binomial counts with the same mean; var = mu + mu^2 / size (assumption)</span></span>
+<span id="cb7-94"><a href="#cb7-94" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">count_dist</span><span class="kw">:</span><span class="at"> negbin</span></span>
+<span id="cb7-95"><a href="#cb7-95" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">count_size</span><span class="kw">:</span><span class="at"> </span><span class="kw">{</span><span class="fu">trade_error</span><span class="kw">:</span><span class="at"> </span><span class="dv">20</span><span class="kw">,</span><span class="at"> </span><span class="fu">nav_error</span><span class="kw">:</span><span class="at"> </span><span class="dv">6</span><span class="kw">,</span><span class="at"> </span><span class="fu">unauthorized_trading</span><span class="kw">:</span><span class="at"> </span><span class="dv">1</span><span class="kw">}</span></span>
+<span id="cb7-96"><a href="#cb7-96" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">reporting_threshold_10k</span><span class="kw">:</span><span class="co">           # losses below $10k are never recorded (assumption)</span></span>
+<span id="cb7-97"><a href="#cb7-97" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">reporting_threshold_usd</span><span class="kw">:</span><span class="at"> </span><span class="dv">10000</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+</div>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -836,38 +903,38 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>n_assump <span class="ot">&lt;-</span> <span class="fu">sum</span>(<span class="fu">grepl</span>(<span class="st">"status$"</span>, <span class="fu">names</span>(leaf)) <span class="sc">&amp;</span> leaf <span class="sc">==</span> <span class="st">"assumption"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
-<p>The file holds 102 leaf values in 10 blocks marked as assumptions. No parameter is calibrated to data in this version.</p>
+<p>The file holds 110 leaf values in 10 blocks marked as assumptions. No parameter is calibrated to data in this version.</p>
 </section>
 <section id="data-lineage" class="level2">
 <h2 class="anchored" data-anchor-id="data-lineage">Data lineage</h2>
-<p>Generated data are outputs, not sources of truth: the generator and <code>params.yaml</code> are. Content hashes (SHA-256 of the deserialised object) let you confirm you reproduced the same results.</p>
+<p>Generated data are outputs, not sources of truth: the generator and <code>params.yaml</code> are. Content hashes (SHA-256 of the deserialised object, serialised with R serialization version 3 so they do not depend on the R release) let you confirm you reproduced the same results.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>files <span class="ot">&lt;-</span> <span class="fu">list.files</span>(<span class="st">"data"</span>, <span class="at">pattern =</span> <span class="st">"</span><span class="sc">\\</span><span class="st">.rds$"</span>, <span class="at">full.names =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">tibble</span>(<span class="at">File =</span> <span class="fu">basename</span>(files), <span class="st">`</span><span class="at">SHA-256 of content</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">map_chr</span>(files, \(f) <span class="fu">substr</span>(digest<span class="sc">::</span><span class="fu">digest</span>(<span class="fu">readRDS</span>(f), <span class="at">algo =</span> <span class="st">"sha256"</span>), <span class="dv">1</span>, <span class="dv">24</span>)), <span class="at">Rows =</span> <span class="fu">map_chr</span>(files, \(f) {</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">tibble</span>(<span class="at">File =</span> <span class="fu">basename</span>(files), <span class="st">`</span><span class="at">SHA-256 of content</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">map_chr</span>(files, \(f) <span class="fu">substr</span>(digest<span class="sc">::</span><span class="fu">digest</span>(<span class="fu">readRDS</span>(f), <span class="at">algo =</span> <span class="st">"sha256"</span>, <span class="at">serializeVersion =</span> <span class="dv">3</span>L), <span class="dv">1</span>, <span class="dv">24</span>)), <span class="at">Rows =</span> <span class="fu">map_chr</span>(files, \(f) {</span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  x <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(f)</span>
 <span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">is.data.frame</span>(x)) <span class="fu">as.character</span>(<span class="fu">nrow</span>(x)) <span class="cf">else</span> <span class="st">"-"</span></span>
 <span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>})) <span class="sc">|&gt;</span> gt<span class="sc">::</span><span class="fu">gt</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
-<div id="krqucfpppd" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#krqucfpppd table {
+<div id="otmdocuhhm" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#otmdocuhhm table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#krqucfpppd thead, #krqucfpppd tbody, #krqucfpppd tfoot, #krqucfpppd tr, #krqucfpppd td, #krqucfpppd th {
+#otmdocuhhm thead, #otmdocuhhm tbody, #otmdocuhhm tfoot, #otmdocuhhm tr, #otmdocuhhm td, #otmdocuhhm th {
   border-style: none;
 }
 
-#krqucfpppd p {
+#otmdocuhhm p {
   margin: 0;
   padding: 0;
 }
 
-#krqucfpppd .gt_table {
+#otmdocuhhm .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -893,12 +960,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-left-color: #D3D3D3;
 }
 
-#krqucfpppd .gt_caption {
+#otmdocuhhm .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#krqucfpppd .gt_title {
+#otmdocuhhm .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -910,7 +977,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-bottom-width: 0;
 }
 
-#krqucfpppd .gt_subtitle {
+#otmdocuhhm .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -922,7 +989,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-top-width: 0;
 }
 
-#krqucfpppd .gt_heading {
+#otmdocuhhm .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -934,13 +1001,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-right-color: #D3D3D3;
 }
 
-#krqucfpppd .gt_bottom_border {
+#otmdocuhhm .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#krqucfpppd .gt_col_headings {
+#otmdocuhhm .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -955,7 +1022,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-right-color: #D3D3D3;
 }
 
-#krqucfpppd .gt_col_heading {
+#otmdocuhhm .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -975,7 +1042,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   overflow-x: hidden;
 }
 
-#krqucfpppd .gt_column_spanner_outer {
+#otmdocuhhm .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -987,15 +1054,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   padding-right: 4px;
 }
 
-#krqucfpppd .gt_column_spanner_outer:first-child {
+#otmdocuhhm .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#krqucfpppd .gt_column_spanner_outer:last-child {
+#otmdocuhhm .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#krqucfpppd .gt_column_spanner {
+#otmdocuhhm .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -1007,11 +1074,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   width: 100%;
 }
 
-#krqucfpppd .gt_spanner_row {
+#otmdocuhhm .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#krqucfpppd .gt_group_heading {
+#otmdocuhhm .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1037,7 +1104,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   text-align: left;
 }
 
-#krqucfpppd .gt_empty_group_heading {
+#otmdocuhhm .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -1052,15 +1119,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   vertical-align: middle;
 }
 
-#krqucfpppd .gt_from_md > :first-child {
+#otmdocuhhm .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#krqucfpppd .gt_from_md > :last-child {
+#otmdocuhhm .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#krqucfpppd .gt_row {
+#otmdocuhhm .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1079,7 +1146,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   overflow-x: hidden;
 }
 
-#krqucfpppd .gt_stub {
+#otmdocuhhm .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1092,7 +1159,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   padding-right: 5px;
 }
 
-#krqucfpppd .gt_stub_row_group {
+#otmdocuhhm .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1106,15 +1173,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   vertical-align: top;
 }
 
-#krqucfpppd .gt_row_group_first td {
+#otmdocuhhm .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#krqucfpppd .gt_row_group_first th {
+#otmdocuhhm .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#krqucfpppd .gt_summary_row {
+#otmdocuhhm .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -1124,16 +1191,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   padding-right: 5px;
 }
 
-#krqucfpppd .gt_first_summary_row {
+#otmdocuhhm .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-#krqucfpppd .gt_first_summary_row.thick {
+#otmdocuhhm .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#krqucfpppd .gt_last_summary_row {
+#otmdocuhhm .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1143,7 +1210,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-bottom-color: #D3D3D3;
 }
 
-#krqucfpppd .gt_grand_summary_row {
+#otmdocuhhm .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -1153,7 +1220,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   padding-right: 5px;
 }
 
-#krqucfpppd .gt_first_grand_summary_row {
+#otmdocuhhm .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1163,7 +1230,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-top-color: #D3D3D3;
 }
 
-#krqucfpppd .gt_last_grand_summary_row_top {
+#otmdocuhhm .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1173,11 +1240,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-bottom-color: #D3D3D3;
 }
 
-#krqucfpppd .gt_striped {
+#otmdocuhhm .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#krqucfpppd .gt_table_body {
+#otmdocuhhm .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -1186,7 +1253,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-bottom-color: #D3D3D3;
 }
 
-#krqucfpppd .gt_footnotes {
+#otmdocuhhm .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1200,7 +1267,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-right-color: #D3D3D3;
 }
 
-#krqucfpppd .gt_footnote {
+#otmdocuhhm .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -1209,7 +1276,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   padding-right: 5px;
 }
 
-#krqucfpppd .gt_sourcenotes {
+#otmdocuhhm .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1223,7 +1290,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-right-color: #D3D3D3;
 }
 
-#krqucfpppd .gt_sourcenote {
+#otmdocuhhm .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -1231,72 +1298,72 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   padding-right: 5px;
 }
 
-#krqucfpppd .gt_left {
+#otmdocuhhm .gt_left {
   text-align: left;
 }
 
-#krqucfpppd .gt_center {
+#otmdocuhhm .gt_center {
   text-align: center;
 }
 
-#krqucfpppd .gt_right {
+#otmdocuhhm .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#krqucfpppd .gt_font_normal {
+#otmdocuhhm .gt_font_normal {
   font-weight: normal;
 }
 
-#krqucfpppd .gt_font_bold {
+#otmdocuhhm .gt_font_bold {
   font-weight: bold;
 }
 
-#krqucfpppd .gt_font_italic {
+#otmdocuhhm .gt_font_italic {
   font-style: italic;
 }
 
-#krqucfpppd .gt_super {
+#otmdocuhhm .gt_super {
   font-size: 65%;
 }
 
-#krqucfpppd .gt_footnote_marks {
+#otmdocuhhm .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#krqucfpppd .gt_asterisk {
+#otmdocuhhm .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#krqucfpppd .gt_indent_1 {
+#otmdocuhhm .gt_indent_1 {
   text-indent: 5px;
 }
 
-#krqucfpppd .gt_indent_2 {
+#otmdocuhhm .gt_indent_2 {
   text-indent: 10px;
 }
 
-#krqucfpppd .gt_indent_3 {
+#otmdocuhhm .gt_indent_3 {
   text-indent: 15px;
 }
 
-#krqucfpppd .gt_indent_4 {
+#otmdocuhhm .gt_indent_4 {
   text-indent: 20px;
 }
 
-#krqucfpppd .gt_indent_5 {
+#otmdocuhhm .gt_indent_5 {
   text-indent: 25px;
 }
 
-#krqucfpppd .katex-display {
+#otmdocuhhm .katex-display {
   display: inline-flex !important;
   margin-bottom: 0.75em !important;
 }
 
-#krqucfpppd div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+#otmdocuhhm div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
   height: 0px !important;
 }
 </style>
@@ -1311,28 +1378,48 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </thead>
 <tbody class="gt_table_body">
 <tr class="odd">
-<td class="gt_row gt_left" headers="File">control_breakeven.rds</td>
-<td class="gt_row gt_left" headers="SHA-256 of content">58bec95bf3a8c8f430ae97e7</td>
-<td class="gt_row gt_right" headers="Rows">-</td>
+<td class="gt_row gt_left" headers="File">boot_variants.rds</td>
+<td class="gt_row gt_left" headers="SHA-256 of content">df47d72c6b03c475d3324baf</td>
+<td class="gt_row gt_right" headers="Rows">400</td>
 </tr>
 <tr class="even">
-<td class="gt_row gt_left" headers="File">control_study.rds</td>
-<td class="gt_row gt_left" headers="SHA-256 of content">849a0d30b72b496124ebd4ae</td>
+<td class="gt_row gt_left" headers="File">control_breakeven.rds</td>
+<td class="gt_row gt_left" headers="SHA-256 of content">2240fecb8da4a2322e9b2e1b</td>
 <td class="gt_row gt_right" headers="Rows">-</td>
 </tr>
 <tr class="odd">
+<td class="gt_row gt_left" headers="File">control_sensitivity.rds</td>
+<td class="gt_row gt_left" headers="SHA-256 of content">f256bb73542a7480358631d6</td>
+<td class="gt_row gt_right" headers="Rows">12</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="File">control_study.rds</td>
+<td class="gt_row gt_left" headers="SHA-256 of content">264056388e8f5a67549b6576</td>
+<td class="gt_row gt_right" headers="Rows">-</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="File">control_tail_ci.rds</td>
+<td class="gt_row gt_left" headers="SHA-256 of content">b5619c644231a200eba4646e</td>
+<td class="gt_row gt_right" headers="Rows">3</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="File">control_tail_diff.rds</td>
+<td class="gt_row gt_left" headers="SHA-256 of content">9af051652830a952e142f73b</td>
+<td class="gt_row gt_right" headers="Rows">2</td>
+</tr>
+<tr class="odd">
 <td class="gt_row gt_left" headers="File">mlreserve.rds</td>
-<td class="gt_row gt_left" headers="SHA-256 of content">14e2c8789eaac78b4cd99ef0</td>
+<td class="gt_row gt_left" headers="SHA-256 of content">c4c8f857131e33d13a4ad38f</td>
 <td class="gt_row gt_right" headers="Rows">-</td>
 </tr>
 <tr class="even">
 <td class="gt_row gt_left" headers="File">replications.rds</td>
-<td class="gt_row gt_left" headers="SHA-256 of content">5daa171b8de07eb426dd3072</td>
-<td class="gt_row gt_right" headers="Rows">39000</td>
+<td class="gt_row gt_left" headers="SHA-256 of content">b01bc0a8684a4894b05c25c5</td>
+<td class="gt_row gt_right" headers="Rows">84000</td>
 </tr>
 <tr class="odd">
 <td class="gt_row gt_left" headers="File">run_meta.rds</td>
-<td class="gt_row gt_left" headers="SHA-256 of content">bbfa2845912463d31c734163</td>
+<td class="gt_row gt_left" headers="SHA-256 of content">8c3b024d9cbed8a8ecf457ec</td>
 <td class="gt_row gt_right" headers="Rows">-</td>
 </tr>
 </tbody>
@@ -1348,7 +1435,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>fresh <span class="ot">&lt;-</span> <span class="fu">identical</span>(current_md5, res<span class="sc">$</span>meta<span class="sc">$</span>params_md5)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
-<p><strong>Staleness check:</strong> <code>params.yaml</code> has not changed since the results were generated (results are current). Results were produced 2026-10-11 14:11:27 UTC with 200 replications on 10 workers.</p>
+<p><strong>Staleness check:</strong> <code>params.yaml</code> has not changed since the results were generated (results are current). Results were produced 2026-10-11 22:25:57 UTC with 200 replications on 10 workers.</p>
 </section>
 <section id="tests" class="level2">
 <h2 class="anchored" data-anchor-id="tests">Tests</h2>
@@ -1828,8 +1915,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tbody class="gt_table_body">
 <tr class="odd">
 <td class="gt_row gt_left" headers="file">test-estimators.R</td>
-<td class="gt_row gt_right" headers="Tests">7</td>
-<td class="gt_row gt_right" headers="Expectations">20</td>
+<td class="gt_row gt_right" headers="Tests">15</td>
+<td class="gt_row gt_right" headers="Expectations">44</td>
 <td class="gt_row gt_right" headers="Failed">0</td>
 <td class="gt_row gt_right" headers="Errors">0</td>
 <td class="gt_row gt_right" headers="Warnings">0</td>
@@ -1837,8 +1924,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 <tr class="even">
 <td class="gt_row gt_left" headers="file">test-generator.R</td>
-<td class="gt_row gt_right" headers="Tests">7</td>
-<td class="gt_row gt_right" headers="Expectations">12</td>
+<td class="gt_row gt_right" headers="Tests">11</td>
+<td class="gt_row gt_right" headers="Expectations">24</td>
 <td class="gt_row gt_right" headers="Failed">0</td>
 <td class="gt_row gt_right" headers="Errors">0</td>
 <td class="gt_row gt_right" headers="Warnings">0</td>
@@ -1871,15 +1958,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>What the tests cover:</p>
 <ul>
 <li>Triangle construction reconciles <strong>exactly</strong> to the event-level data (counts and amounts, quarterly and annual) and never leaks undiscovered events into the observed region.</li>
-<li>The generator is deterministic for a seed, rejects invalid parameters, keeps lags non-negative under the control shift and injects shock events exactly.</li>
-<li>Estimators: the in-house chain-ladder matches the package on a dense triangle, tolerates empty development columns, never throws (errors become <code>failed</code>), and sparse triangles are reported as failed or suspect, never as silent zeros.</li>
+<li>The generator is deterministic for a seed, rejects invalid parameters, keeps lags non-negative under the control shift, injects shock events exactly, and the control-improvement shift reduces time remaining by the stated fraction measured from the later of the shift quarter and the origin (events originating after the shift are not collapsed to lag 0).</li>
+<li>The negative-binomial scenario has the same mean count as Poisson but larger variance, and the reporting threshold removes only losses below it.</li>
+<li>Estimators: the in-house chain-ladder matches the package on a dense triangle, tolerates empty development columns, never throws (errors become <code>failed</code>), and sparse triangles are reported as failed or suspect, never as silent zeros. The Mack implementation with empty-column handling reproduces <code>ChainLadder::MackChainLadder</code> on a dense triangle (IBNR and standard error), runs where the package stops, and a zero bootstrap estimate is flagged suspect. Bornhuetter-Ferguson, Benktander and the benchmark development pattern are checked for coherence (shares in [0, 1], Benktander between BF and chain-ladder, pattern matches simulation).</li>
 <li>Scoring and control functions are checked against hand-computed values.</li>
 <li>A replication run is identical on 1 and 2 cores.</li>
 </ul>
 </section>
 <section id="caching-and-runtime" class="level2">
 <h2 class="anchored" data-anchor-id="caching-and-runtime">Caching and runtime</h2>
-<p>Pages cache their chunk results with Quarto <code>freeze: auto</code>; a page re-executes when its source changes. To force a full rebuild, delete <code>_freeze/</code> and <code>docs/</code>. The heavy computation is not in the pages at all: it is in <code>run_simulations.R</code>, which took 8.3 minutes for the replications and 2 seconds for the control study and break-even on this run.</p>
+<p>Pages cache their chunk results with Quarto <code>freeze: auto</code>; a page re-executes when its source changes. To force a full rebuild, delete <code>_freeze/</code> and <code>docs/</code>. The heavy computation is not in the pages at all: it is in <code>run_simulations.R</code>, which took 7.9 minutes for the replications and 4 seconds for the control study and break-even on this run.</p>
 </section>
 <section id="known-limits-of-reproducibility" class="level2">
 <h2 class="anchored" data-anchor-id="known-limits-of-reproducibility">Known limits of reproducibility</h2>
@@ -1904,6 +1992,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li><strong>Interval method.</strong> Mack and Clark intervals use a lognormal approximation to the total; the bootstrap uses empirical quantiles. Other choices would change coverage numbers somewhat.</li>
 <li><strong>Annual vs.&nbsp;quarterly.</strong> Headline results use annual triangles because quarterly triangles are mostly unusable for the standard methods. A real firm with a long, dense history might do better at finer granularity.</li>
 <li><strong>One firm size.</strong> A $5B stylised firm; no other sizes were tested.</li>
+<li><strong>Poisson frequency, no clustering.</strong> Baseline counts are independent Poisson. Real operational-loss counts are overdispersed, and common-cause failures (for example a pricing feed that fails across many funds) produce batches of errors. The negative-binomial scenario adds overdispersion within an event type, but not clustering across types or across quarters.</li>
+<li><strong>No reporting threshold in the baseline.</strong> Real loss databases only record losses above a collection threshold, often $10k to $20k. The median simulated trade error is about $2.4k, so a real database would hold far fewer trade errors. A $10k threshold is run as a sensitivity scenario.</li>
+<li><strong>Some “method failures” are package limits, not method limits.</strong> <code>ChainLadder::MackChainLadder()</code> stops on triangles with empty development columns. Results with empty-column handling (factor 1) are reported next to the package results.</li>
+<li><strong>Frequency x severity donor sparsity.</strong> At long lags few observed events exist, so severities are resampled from the few that do (or from all events when none are nearby, which drops the lag uplift). A variant that pools severities and re-applies an estimated uplift is reported.</li>
+<li><strong>Every control result scales with the severity-growth parameter <span class="math inline">\(e\)</span>.</strong> With <span class="math inline">\(e = 0\)</span> incurred loss is the same with and without the control (see <a href="./controls.html#sec-sensitivity">Control Value</a>).</li>
+<li><strong>Pure IBNR only.</strong> Loss is booked in full at discovery, so there is no development on events already known (provisions, recoveries, insurance). The terminology here is IBNR, not IBNER.</li>
+<li><strong>The benchmark development pattern is the generator’s own.</strong> The Bornhuetter-Ferguson variant with an external pattern shows what an accurate prior pattern buys; with a pattern that is itself wrong it would do worse, and the study does not test that.</li>
 </ol>
 </section>
 <section id="what-would-change-the-conclusions" class="level3">
@@ -1935,6 +2030,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="even">
 <td>Strong calendar-period effects in real data</td>
 <td>All development methods would need an explicit calendar term</td>
+</tr>
+<tr class="odd">
+<td>Losses arrive in clusters from a common failure</td>
+<td>Chain-ladder variance is understated; Bornhuetter-Ferguson with a pooled pattern is preferred</td>
+</tr>
+<tr class="even">
+<td>Real collection threshold of $10k or more</td>
+<td>The trade-error triangle is mostly empty and the standard methods have little to work with</td>
 </tr>
 </tbody>
 </table>

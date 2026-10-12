@@ -10,9 +10,36 @@ for (f in list.files("R", full.names = TRUE)) source(f)
 res <- load_results()
 s <- score_estimates(res$reps)
 params <- load_params() |> apply_scenario("baseline")
+sa <- s |> filter(kind == "amount", scenario == "baseline", granularity == "annual")
+geta <- \(t, m, col) sa[[col]][sa$type == t & sa$method == m]
 ```
 
-How well can each method estimate the undiscovered loss? Every method is scored against the known truth on `r res$meta$n_reps` simulated databases per scenario. Sections: [counts](#sec-counts), [dollar losses](#sec-amounts), [validation across methods](#sec-validation), [stress tests](#sec-stress) and an [experimental machine-learning comparator](#sec-ml).
+How well can each method estimate the undiscovered loss? Every method is scored against the known truth on `r res$meta$n_reps` simulated databases per scenario. Sections: [summary](#sec-summary), [counts](#sec-counts), [dollar losses](#sec-amounts), [validation across methods](#sec-validation) and [stress tests](#sec-stress). An [experimental machine-learning comparator](ml-appendix.qmd) is on its own page because it does not feed the conclusions.
+
+## Summary by event type {#sec-summary}
+
+For each event type, the method with the smallest absolute relative bias among methods that return a point estimate in at least 20 of `r res$meta$n_reps` databases, the usable rate of the package Mack fit, and the best method *that also supplies a 95% interval* (so its coverage can be read).
+
+```{r}
+#| label: tbl-summary
+elig <- sa |> filter(n_usable >= min_usable, !grepl("_tail$", method), !is.na(rel_bias))
+pick <- \(d) d |> slice_min(abs(rel_bias), n = 1, by = type, with_ties = FALSE)
+best_any <- elig |> pick()
+best_int <- elig |> filter(has_interval) |> pick()
+usable_mack <- sa |> filter(method == "mack") |> select(type, mack_usable = usable_rate)
+best_any |>
+  select(type, `Best point estimate` = method, `Rel. bias` = rel_bias, `Median signed rel. error` = median_rel_err) |>
+  left_join(best_int |> select(type, `Best with interval` = method, `Bias (interval method)` = rel_bias, Coverage = coverage_usable), by = "type") |>
+  left_join(usable_mack, by = "type") |>
+  mutate(type = factor(type_lab[type], levels = type_lab),
+         across(starts_with("Best"), \(x) method_lab[x])) |>
+  arrange(type) |>
+  rename(Type = type, `Package Mack usable` = mack_usable) |>
+  gt::gt() |>
+  gt::fmt_percent(c(`Rel. bias`, `Median signed rel. error`, `Bias (interval method)`, Coverage, `Package Mack usable`), decimals = 0) |>
+  gt::sub_missing(missing_text = "-") |>
+  gt::tab_source_note("Baseline, annual dollar triangles. 'Best' = smallest |relative bias|; this is a descriptive ranking on one simulator, and differences of a few percentage points are within simulation noise. For unauthorized trading the severity tail (shape 0.6) has infinite variance, so a few databases dominate every sum and the median signed error is the steadier statistic.")
+```
 
 ## Count triangles {#sec-counts}
 
@@ -58,10 +85,11 @@ Quarterly triangles (40 x 40) are far sparser; see [Method validation](#sec-vali
 
 Dollar-loss triangles are what a risk committee cares about, but they are the hard case: a single large event dominates a cell, and late-discovered events are larger.
 
-### Two routes to the missing amount
+### Routes to the missing amount
 
-1. **Direct:** run the development methods on the dollar triangle (Mack, Bootstrap, Clark LDF, Clark Cape Cod, plain chain-ladder).
-2. **Frequency x severity:** project the *number* of undiscovered events from the count triangle, then price each projected event by resampling observed severities at a similar discovery lag. This keeps the stable count signal separate from the noisy severities. It ignores parameter uncertainty, so we expect its intervals to be too narrow.
+1. **Direct development methods** on the dollar triangle: plain chain-ladder, Mack (the package implementation, and a version that sets development factors of empty columns to 1 so it runs on sparse triangles), Mack using only the latest three calendar diagonals, bootstrap chain-ladder, and Clark growth curves.
+2. **Bornhuetter-Ferguson (BF) and Benktander.** An a-priori expected loss (loss per unit exposure, estimated from the five oldest origin years, times exposure) is weighted by the share still unreported. The share comes either from the triangle's own chain-ladder pattern, or from an external **benchmark pattern**. The benchmark here is the generator's own lag distribution, so it shows what an accurate external pattern buys and is optimistic. BF and Benktander give point estimates only.
+3. **Frequency x severity:** project the *number* of undiscovered events from the count triangle, then price each projected event by resampling observed severities at a similar lag. This keeps the stable count signal separate from the noisy severities. It ignores parameter uncertainty, so we expect its intervals to be too narrow. A variant pools all observed severities and re-applies an estimated linear lag uplift.
 
 ### Results (baseline, annual triangles, 200 simulated databases)
 
@@ -74,28 +102,50 @@ score_gt(s, "amount")
 
 ```{r}
 #| label: fig-amount-errors
-#| fig-height: 4.2
-plot_errors(res$reps, "amount", methods = c("chainladder", "mack", "boot", "freq_x_sev", "clark_ldf_weibull"))
+#| fig-height: 4.6
+plot_errors(res$reps, "amount", methods = c("chainladder", "mack_ec", "bf", "bf_benchmark", "boot", "freq_x_sev", "clark_ldf_weibull"))
 ```
 
 ```{r}
 #| label: amount-text
-sc <- s |> filter(kind == "amount", scenario == "baseline", granularity == "annual")
-get <- \(t, m, col) sc[[col]][sc$type == t & sc$method == m]
-tail_share <- res$reps |>
-  filter(method == "chainladder", kind == "amount", scenario == "baseline", granularity == "annual") |>
-  summarise(share = 1 - sum(truth_window) / sum(truth_total), .by = type)
-ts <- setNames(tail_share$share, tail_share$type)
+ts <- map_dbl(set_names(names(params$event_types)), \(t) tail_share(res$reps, t))
+fs <- res$reps |>
+  filter(method == "freq_x_sev", kind == "amount", granularity == "annual", scenario == "baseline") |>
+  summarise(fallback = mean(fallback_share, na.rm = TRUE), min_donors = median(min_donors, na.rm = TRUE), .by = type)
+fs_un <- fs |> filter(type == "unauthorized_trading")
+cl_par <- res$reps |>
+  filter(grepl("clark_(cc|ldf)_weibull$", method), kind == "amount", granularity == "annual", scenario == "baseline", type == "trade_error") |>
+  summarise(omega = median(fit_omega, na.rm = TRUE), theta = median(fit_theta, na.rm = TRUE), low_omega = mean(fit_omega < 0.2, na.rm = TRUE), .by = method)
+cc <- cl_par |> filter(method == "clark_cc_weibull")
 ```
 
-- **Trade and NAV errors:** Mack, Bootstrap and frequency x severity are all usable. Relative biases for NAV errors are Mack `r fmt_pct(get("nav_error", "mack", "rel_bias"))`, Bootstrap `r fmt_pct(get("nav_error", "boot", "rel_bias"))` and frequency x severity `r fmt_pct(get("nav_error", "freq_x_sev", "rel_bias"))`.
-- **Clark curves** are unreliable here. The loglogistic fit is usable in `r get("trade_error", "clark_ldf_loglogistic", "n_usable")` of 200 trade-error databases. Where most loss is discovered in the first period, the fitted growth curve sits on an optimiser bound and extrapolates badly.
-- **Unauthorized trading:** only the plain chain-ladder point estimate and frequency x severity produce a result in most databases. The chain-ladder estimate is wildly unstable (relative bias `r fmt_pct(get("unauthorized_trading", "chainladder", "rel_bias"))`, median error `r fmt_pct(get("unauthorized_trading", "chainladder", "median_rel_err"))`), because a single large loss in the latest diagonal is multiplied by large development factors. Frequency x severity has relative bias `r fmt_pct(get("unauthorized_trading", "freq_x_sev", "rel_bias"))` but its interval covers the truth only `r fmt_pct(get("unauthorized_trading", "freq_x_sev", "coverage_usable"))` of the time.
-- **Beyond the window:** about `r fmt_pct(ts[["unauthorized_trading"]])` of the true undiscovered unauthorized-trading loss is discovered more than 40 quarters after origin. No in-window method can see it; it needs an explicit tail assumption.
+- **Trade and NAV errors:** Mack, bootstrap, Bornhuetter-Ferguson and frequency x severity are all usable and within about 15% of the truth in aggregate. Relative biases for NAV errors are Mack `r fmt_pct(geta("nav_error", "mack", "rel_bias"))`, bootstrap `r fmt_pct(geta("nav_error", "boot", "rel_bias"))`, BF with its own pattern `r fmt_pct(geta("nav_error", "bf", "rel_bias"))` and frequency x severity `r fmt_pct(geta("nav_error", "freq_x_sev", "rel_bias"))`.
+- **Package Mack versus Mack with empty-column handling.** The package fails in `r geta("unauthorized_trading", "mack", "n_failed")` of `r res$meta$n_reps` unauthorized-trading databases (non-finite development factors from empty columns). Setting those factors to 1 makes it run in `r geta("unauthorized_trading", "mack_ec", "n_usable")` of them, and identical to the package where the package runs (trade and NAV errors). So the failure is an implementation limit. But the result when it runs is poor: relative bias `r fmt_pct(geta("unauthorized_trading", "mack_ec", "rel_bias"))`, median signed error `r fmt_pct(geta("unauthorized_trading", "mack_ec", "median_rel_err"))` and interval coverage `r fmt_pct(geta("unauthorized_trading", "mack_ec", "coverage_usable"))`. A single large loss in the latest diagonal is multiplied by large factors, so the mean is far too high while the typical database is underestimated.
+- **Bornhuetter-Ferguson on unauthorized trading** does not remove the problem. With its own pattern the relative bias is `r fmt_pct(geta("unauthorized_trading", "bf", "rel_bias"))` (median `r fmt_pct(geta("unauthorized_trading", "bf", "median_rel_err"))`); with the benchmark pattern `r fmt_pct(geta("unauthorized_trading", "bf_benchmark", "rel_bias"))` (median `r fmt_pct(geta("unauthorized_trading", "bf_benchmark", "median_rel_err"))`). The a-priori loss per unit exposure is itself estimated from heavy-tailed history, so one large old loss inflates every origin year. BF has no interval here.
+- **Frequency x severity** has relative bias `r fmt_pct(geta("unauthorized_trading", "freq_x_sev", "rel_bias"))` on unauthorized trading and the best coverage among methods with intervals, but only `r fmt_pct(geta("unauthorized_trading", "freq_x_sev", "coverage_usable"))`. At long lags few observed events exist: `r fmt_pct(fs_un$fallback)` of projected unauthorized-trading events are priced from the all-event pool because no events are nearby in lag (median fewest donors for any lag with projected events: `r fs_un$min_donors`). The uplift-pooling variant has relative bias `r fmt_pct(geta("unauthorized_trading", "freq_x_sev_uplift", "rel_bias"))` and coverage `r fmt_pct(geta("unauthorized_trading", "freq_x_sev_uplift", "coverage_usable"))`, so pooling does not by itself fix the under-coverage.
+- **Recent-origin bias** (relative bias for the latest origin year only) is much larger than overall bias for unauthorized trading with frequency x severity (`r fmt_pct(geta("unauthorized_trading", "freq_x_sev", "rel_bias_recent"))` against `r fmt_pct(geta("unauthorized_trading", "freq_x_sev", "rel_bias"))` overall): the most recent origin year has the largest undiscovered share, so errors concentrate there, and it is exactly the year a decision-maker cares about.
+- **Beyond the window:** about `r fmt_pct(ts[["unauthorized_trading"]])` of the true undiscovered unauthorized-trading loss is discovered more than 40 quarters after origin, although only `r fmt_pct(beyond_window_share(params)[["unauthorized_trading"]], 1)` of unauthorized-trading events are (late events are scaled up by the severity-growth term). No in-window method can see it; it needs an explicit tail assumption.
+
+### Method settings
+
+- **Bootstrap:** `BootChainLadder` with `R = ` `r params$replication$n_boot` resamples and `process.distr = "gamma"`. Re-running trade and NAV errors with `"od.pois"` on the first 100 databases gives practically the same bias and coverage, so this choice is not what drives the under-coverage.
+
+```{r}
+#| label: tbl-boot-variants
+bv <- readRDS("data/boot_variants.rds")
+bv |>
+  summarise(`Rel. bias` = sum(est - truth) / sum(truth), Coverage = mean(lo <= truth & truth <= hi), Fits = n(), .by = c(type, process)) |>
+  mutate(Type = type_lab[type], `Process distribution` = process) |>
+  select(Type, `Process distribution`, Fits, `Rel. bias`, Coverage) |>
+  gt::gt() |>
+  gt::fmt_percent(c(`Rel. bias`, Coverage), decimals = 0)
+```
+
+- **Clark curves:** ages are period ends (1 to 10 years), the package default for the average date of loss (half an origin period), `maxage` is the window length, and Cape Cod exposure is the exposure path scaled so that expected loss ratios start near 1. These conventions are the package's own; they are not the cause of the poor trade-error results. The cause is the shape of the data. About `r fmt_pct(1 - geta("trade_error", "clark_ldf_loglogistic", "usable_rate"))` of trade-error loglogistic fits end on the optimiser bound: the package restricts the loglogistic scale (the age by which half the loss is reported) to be at least half a year here, but most trade-error loss is already reported in the first period. The Weibull Cape Cod fit converges to a degenerate curve (median shape `r sprintf("%.2f", cc$omega)`, scale `r sprintf("%.1f", cc$theta)` years) in `r fmt_pct(cc$low_omega)` of trade-error databases, which implies a long thin tail that the oldest origin years do not show. That is a fit to the wrong shape, not exposure scaling, and the resulting `r fmt_pct(geta("trade_error", "clark_cc_weibull", "rel_bias"))` bias stands.
 
 ## Method validation {#sec-validation}
 
-Because the data are synthetic, every method can be scored against the true undiscovered amount. We generate `r res$meta$n_reps` independent databases per scenario, fit each method to each, and record bias, error and interval coverage. A fit is **usable** only if the method ran and passed sanity checks; fits that error out (*failed*) or return an implausible result (*suspect*, for example a bootstrap IBNR of zero when a deterministic chain-ladder says otherwise) are excluded from bias figures and counted as misses for coverage.
+Because the data are synthetic, every method can be scored against the true undiscovered amount. We generate `r res$meta$n_reps` independent databases per scenario, fit each method to each, and record bias, error and interval coverage. A fit is **usable** only if the method ran and passed sanity checks. Fits that error out (*failed*) or return an implausible result (*suspect*, for example a bootstrap IBNR of zero, a bootstrap mean below 10% of the deterministic chain-ladder, or a growth-curve parameter on its optimiser bound) are excluded from bias figures. Two coverage columns are shown: coverage among usable fits, and coverage over all fits where failed, suspect and interval-free fits count as misses. Rows with fewer than 20 usable fits are shown as a dash.
 
 These are tests of how methods behave **under this simulator**, not proof of how they behave on any real firm's data.
 
@@ -103,7 +153,7 @@ These are tests of how methods behave **under this simulator**, not proof of how
 
 ```{r}
 #| label: fig-scorecard-amount
-#| fig-height: 6
+#| fig-height: 8
 plot_scorecard(s, "amount")
 ```
 
@@ -117,11 +167,11 @@ plot_scorecard(s, "count")
 
 ### Interval coverage
 
-A well-calibrated 95% interval should contain the truth about 95% of the time. Methods whose intervals are narrower than the true uncertainty fall left of the dashed line.
+A well-calibrated 95% interval should contain the truth about 95% of the time. Methods whose intervals are narrower than the true uncertainty fall left of the dashed line. BF and Benktander give no interval and are not shown.
 
 ```{r}
 #| label: fig-coverage
-#| fig-height: 4.4
+#| fig-height: 4.6
 plot_coverage(s, "amount")
 ```
 
@@ -132,7 +182,7 @@ Finer triangles contain more empty cells. The share of fits that were usable:
 ```{r}
 #| label: tbl-usable
 s |>
-  filter(scenario == "baseline", kind == "amount", method %in% c("mack", "boot", "clark_ldf_weibull", "freq_x_sev")) |>
+  filter(scenario == "baseline", kind == "amount", method %in% c("mack", "mack_ec", "boot", "clark_ldf_weibull", "freq_x_sev")) |>
   label_scores() |>
   select(Type = type, Method = method, granularity, usable_rate) |>
   pivot_wider(names_from = granularity, values_from = usable_rate) |>
@@ -149,58 +199,111 @@ s |>
 res$reps |>
   filter(scenario == "baseline", kind == "amount", granularity == "annual", status %in% c("failed", "suspect")) |>
   mutate(reason = case_when(
-    grepl("NA/NaN/Inf", message) ~ "Package error: development factors undefined (empty column)",
+    grepl("NA/NaN/Inf", message) ~ "Package error: non-finite development factor (empty column)",
     grepl("optimiser bound", message) ~ "Growth-curve parameter at optimiser bound",
     grepl("bootstrap mean IBNR", message) ~ "Bootstrap returned ~0 where chain-ladder does not",
+    grepl("zero", message) ~ "Bootstrap mean IBNR is zero",
     grepl("error in evaluating", message) ~ "Package error inside growth-curve fit",
     TRUE ~ substr(message, 1, 60)
   )) |>
-  count(Method = method_lab[method], Status = status, Reason = reason, name = "Fits") |>
-  arrange(desc(Fits)) |>
-  slice_head(n = 12) |>
-  gt::gt() |>
-  gt::tab_source_note("Baseline, annual, dollar triangles; all three event types, 200 databases each.")
+  count(Type = factor(type_lab[type], levels = type_lab), Method = method_lab[method], Status = status, Reason = reason, name = "Fits") |>
+  arrange(Type, desc(Fits)) |>
+  gt::gt(groupname_col = "Type") |>
+  gt::tab_source_note("Baseline, annual, dollar triangles; 200 databases per event type, so counts within a type are out of 200 per method.")
 ```
 
 ### Reading the results
 
 - No method is reliable for every event type. The ranking changes with how many events there are and how heavy their tails are.
-- The standard development methods (Mack, Bootstrap) are trustworthy where events are plentiful (trade errors) and acceptable where they are moderately frequent (NAV errors). Their intervals are somewhat too narrow even there.
-- For rare, heavy-tailed events (unauthorized trading), the standard methods mostly cannot run, and the ones that do are unstable. A frequency-severity decomposition gives a usable but overconfident answer.
+- The standard development methods (Mack, bootstrap) are trustworthy where events are plentiful (trade errors) and acceptable where they are moderately frequent (NAV errors). Their intervals are somewhat too narrow even there.
+- For rare, heavy-tailed events (unauthorized trading), the package Mack cannot run, and once it is made to run it is badly biased with poor coverage. Bornhuetter-Ferguson with an external pattern and frequency x severity are the most defensible point estimates here, but all methods are unstable and none has well-calibrated intervals.
 
 ## Stress tests {#sec-stress}
 
-Chain-ladder methods assume that the pattern of past development carries forward. Three scenarios break that assumption in different ways. All use annual triangles and the same 200 seeds as the baseline.
+Chain-ladder methods assume that the pattern of past development carries forward. Five scenarios break that assumption, or the data-generating assumptions, in different ways. All use annual triangles and the same 200 seeds as the baseline (the scenario index is part of the seed, so each scenario has its own databases).
 
 | Scenario | Why it is hard |
 |---|---|
-| Heavy-tail shock | Two very large unauthorized-trading losses sit inside the window |
+| Heavy-tail shock | Two very large unauthorized-trading losses are injected; one is discovered, one is not yet (table below) |
 | Control improvement | Detection gets faster partway through, so history over-predicts future development |
 | Exposure growth | Rising volume distorts comparisons across origin periods |
+| Overdispersion | Negative-binomial counts (same mean as baseline, larger variance) |
+| Reporting threshold $10k | Losses below $10,000 are never recorded, as in many real loss databases |
+
+### Heavy-tail shock: what is injected
+
+```{r}
+#| label: tbl-injected
+n_o <- params$horizon$n_origin
+inj <- load_params()$scenarios$heavy_tail_shock$injected_events
+tibble(
+  `Event` = seq_along(inj),
+  `Origin quarter` = map_dbl(inj, "origin"),
+  `Lag (quarters)` = map_dbl(inj, "lag"),
+  `Discovery quarter` = `Origin quarter` + `Lag (quarters)`,
+  Severity = map_dbl(inj, "severity")
+) |>
+  mutate(`Discovered by quarter 40?` = if_else(`Discovery quarter` <= n_o, "Yes (in the realised history)", "No (undiscovered at evaluation)")) |>
+  gt::gt() |>
+  gt::fmt_currency(Severity, decimals = 0, suffixing = TRUE)
+```
+
+The undiscovered truth in this scenario is therefore mainly the second injected loss: it is not in the realised history, so a method cannot see it in the severity pool.
+
+### Control improvement: what the shift does
+
+```{r}
+#| label: tbl-shift-diag
+shift <- load_params()$scenarios$control_improvement$control_shift
+cq <- shift$calendar_quarter
+pairs <- map(1:40, \(r) {
+  before <- simulate_database(apply_scenario(load_params(), "baseline"), rep = r) |> filter(type == "trade_error")
+  set.seed(r)
+  list(before = before, after = apply_control_shift(before, shift))
+})
+both <- \(f) c(Baseline = mean(map_dbl(pairs, \(p) f(p$before, p$before))), `After shift` = mean(map_dbl(pairs, \(p) f(p$before, p$after))))
+# f(before, after) is evaluated on `after` and may use `before` to select the same events
+rows <- list(
+  "Mean lag, all events (quarters)" = both(\(b, e) mean(e$lag)),
+  "Mean lag, events originating after the shift (quarters)" = both(\(b, e) mean(e$lag[b$origin > cq])),
+  "Mean time remaining after the shift quarter, events pending at that quarter (quarters)" =
+    both(\(b, e) mean((e$origin + e$lag - cq)[b$origin <= cq & b$origin + b$lag > cq])),
+  "Share of events undiscovered at quarter 40" = both(\(b, e) mean(e$origin + e$lag > n_o))
+)
+tibble(Measure = names(rows), Baseline = map_dbl(rows, "Baseline"), `After shift` = map_dbl(rows, "After shift")) |>
+  mutate(Change = `After shift` / Baseline - 1) |>
+  gt::gt() |>
+  gt::fmt_number(c(Baseline, `After shift`), decimals = 3) |>
+  gt::fmt_percent(Change, decimals = 0) |>
+  gt::tab_source_note("Trade errors, first 40 baseline databases, with the shift applied to the same events (paired). Time remaining is measured from the later of the shift quarter and the event's origin, and rounded stochastically.")
+```
 
 ### Mean estimate vs. mean truth
 
-Relative errors explode when the true value is near zero (as it is after a control improvement), so this page shows **absolute dollars**: the mean undiscovered loss in the window, true and estimated, for the methods that run.
+Relative errors explode when the true value is near zero, so this page shows **absolute dollars**: the mean undiscovered loss in the window, true and estimated, for the methods that run. Methods with fewer than 20 usable fits are omitted. "Mack, latest 3 diagonals" restricts development factors to the three most recent calendar diagonals, a standard remedy when development changes over calendar time; the "benchmark pattern" BF uses an externally supplied development pattern from the baseline generator, so it does not adapt to a changed pattern either.
 
 ```{r}
 #| label: fig-stress
-#| fig-height: 6.5
-d <- res$reps |>
-  add_target() |>
-  filter(kind == "amount", granularity == "annual", status == "ok", is.finite(est),
-         method %in% c("chainladder", "mack", "boot", "freq_x_sev")) |>
-  summarise(Estimate = mean(est), Truth = mean(truth), n = n(), .by = c(scenario, type, method)) |>
-  mutate(scenario = factor(scenario, levels = c("baseline", "heavy_tail_shock", "control_improvement", "exposure_growth")), type = factor(type_lab[type], levels = type_lab), method = factor(method_lab[method], levels = method_order))
+#| fig-height: 12
+#| fig-width: 11
+d <- stress_means(res$reps) |> filter(n >= min_usable)
 truth <- d |> distinct(scenario, type, Truth)
-ggplot(d, aes(method, Estimate)) +
+d_plot <- d |>
+  mutate(shown = pmin(Estimate, 3 * Truth), label = if_else(Estimate > 3 * Truth, sprintf("%.0fx", Estimate / Truth), NA_character_),
+         panel = paste0(type, "\n", str_replace_all(as.character(scenario), c("reporting_threshold_10k" = "threshold $10k", "_" = " "))),
+         panel = factor(panel, levels = unique(panel[order(type, scenario)])))
+ggplot(d_plot, aes(method, shown)) +
   geom_col(fill = "#0072B2", alpha = 0.8, width = 0.7) +
+  geom_text(aes(label = label), vjust = -0.3, size = 2.6, na.rm = TRUE) +
   geom_hline(data = truth, aes(yintercept = Truth), colour = "#D55E00", linewidth = 0.9) +
-  facet_grid(type ~ scenario, scales = "free_y", labeller = labeller(scenario = \(x) str_replace_all(x, "_", " "))) +
-  scale_y_continuous(labels = fmt_usd) +
-  scale_x_discrete(guide = guide_axis(angle = 40)) +
-  labs(x = NULL, y = "Mean undiscovered loss in window", title = "Estimated (bars) vs. true (orange line)", subtitle = "Bars use only fits that were usable; for unauthorized trading Mack/Bootstrap are usually missing") +
+  facet_wrap(vars(panel), scales = "free_y", ncol = 5) +
+  scale_y_continuous(labels = fmt_usd, expand = expansion(mult = c(0, 0.12))) +
+  scale_x_discrete(guide = guide_axis(angle = 60)) +
+  labs(x = NULL, y = "Mean undiscovered loss in window",
+       title = "Estimated (bars) vs. true (orange line)",
+       subtitle = "Bars are clipped at 3x the truth, with the ratio printed. Only methods with at least 20 usable fits are drawn.") +
   theme_op() +
-  theme(axis.text.x = element_text(size = 7))
+  theme(axis.text.x = element_text(size = 6), strip.text = element_text(size = 7))
 ```
 
 ```{r}
@@ -215,110 +318,41 @@ d |>
   gt::fmt_currency(c(Truth, Estimate, Error), decimals = 0, suffixing = TRUE)
 ```
 
+### Can a calendar-diagonal test see the change?
+
+A simple diagnostic: the standardised age-to-age residuals on the latest two calendar diagonals, summed as a z-score. A strongly negative value means recent development is below what earlier years predicted. The table shows how often the test (z below -1.645) fires in each scenario.
+
+```{r}
+#| label: tbl-calendar
+res$reps |>
+  filter(method == "mack_ec", kind == "amount", granularity == "annual", is.finite(cal_z)) |>
+  summarise(Fits = n(), `Mean z` = mean(cal_z), `Flagged (z < -1.645)` = mean(cal_z < -1.645), .by = c(type, scenario)) |>
+  mutate(Type = factor(type_lab[type], levels = type_lab), Scenario = str_replace_all(scenario, "_", " ")) |>
+  arrange(Type, Scenario) |>
+  select(Type, Scenario, Fits, `Mean z`, `Flagged (z < -1.645)`) |>
+  gt::gt(groupname_col = "Type") |>
+  gt::fmt_number(`Mean z`, decimals = 2) |>
+  gt::fmt_percent(`Flagged (z < -1.645)`, decimals = 0)
+```
+
 ```{r}
 #| label: stress-numbers
-ci <- d |> filter(scenario == "control_improvement", method == "Mack", type == "Trade errors")
-ht <- res$reps |> add_target() |> filter(scenario == "heavy_tail_shock", kind == "amount", granularity == "annual", type == "unauthorized_trading", method == "freq_x_sev", status == "ok") |>
-  summarise(cov = mean(lo <= truth & truth <= hi, na.rm = TRUE), bias = sum(est - truth) / sum(truth))
+get_s <- \(sc, t, m, col) d[[col]][d$scenario == sc & d$type == t & d$method == m]
+get_cov <- \(sc, t, m) s$coverage_usable[s$scenario == sc & s$kind == "amount" & s$granularity == "annual" & s$type == t & s$method == m]
+ht <- res$reps |> add_target() |>
+  filter(scenario == "heavy_tail_shock", kind == "amount", granularity == "annual", type == "unauthorized_trading", method %in% c("freq_x_sev", "bf_benchmark", "mack_last3")) |>
+  summarise(bias = sum(est - truth) / sum(truth), cov = if (any(is.finite(lo))) mean(lo <= truth & truth <= hi, na.rm = TRUE) else NA_real_, .by = method)
+htg <- \(m, col) ht[[col]][ht$method == m]
+cal <- res$reps |>
+  filter(method == "mack_ec", kind == "amount", granularity == "annual", is.finite(cal_z)) |>
+  summarise(flag = mean(cal_z < -1.645), .by = c(type, scenario))
+calg <- \(t, sc) cal$flag[cal$type == t & cal$scenario == sc]
 ```
 
 ### What the stress tests show
 
-- **Control improvement.** After detection speeds up, the true undiscovered amount shrinks to near zero but methods trained on the earlier, slower history still project substantial development. For trade errors Mack's mean estimate is `r fmt_usd(ci$Estimate, 2)` against a true `r fmt_usd(ci$Truth, 2)`. In practice this means **a firm that has just improved its controls will over-reserve if it applies old development factors**, and a development method cannot tell a real improvement from noise without a change-point test.
-- **Heavy-tail shock.** For unauthorized trading, frequency x severity has relative bias `r fmt_pct(ht$bias)` and interval coverage `r fmt_pct(ht$cov)` in this scenario. The injected losses are in the *realised* history, so the method sees them in the severity pool; whether a future shock is anticipated is a different question that this design does not test.
+- **Control improvement.** After detection speeds up, the true undiscovered trade-error amount falls from `r fmt_usd(get_s("baseline", "Trade errors", "Chain-ladder (vol-weighted)", "Truth"))` to `r fmt_usd(get_s("control_improvement", "Trade errors", "Mack (package)", "Truth"))`, about half. Methods trained on the earlier, slower history keep projecting the old development: Mack's mean estimate is `r fmt_usd(get_s("control_improvement", "Trade errors", "Mack (package)", "Estimate"))`, `r fmt_pct(get_s("control_improvement", "Trade errors", "Mack (package)", "Estimate") / get_s("control_improvement", "Trade errors", "Mack (package)", "Truth") - 1)` too high. **A firm that has just improved its controls will over-reserve if it applies old development factors.** Restricting the factors to the latest three diagonals removes most of the error here (`r fmt_usd(get_s("control_improvement", "Trade errors", "Mack (latest 3 diagonals)", "Estimate"))` against the truth) and reduces it for NAV errors (`r fmt_usd(get_s("control_improvement", "NAV errors", "Mack (latest 3 diagonals)", "Estimate"))` against `r fmt_usd(get_s("control_improvement", "NAV errors", "Mack (latest 3 diagonals)", "Truth"))`), at the price of noisier factors in the other scenarios (`r fmt_pct(geta("trade_error", "mack_last3", "rel_bias"))` bias and `r fmt_pct(geta("trade_error", "mack_last3", "coverage_usable"))` coverage for trade errors in the baseline, against `r fmt_pct(geta("trade_error", "mack", "rel_bias"))` and `r fmt_pct(geta("trade_error", "mack", "coverage_usable"))`). It does not help unauthorized trading. The calendar-diagonal test is weak on 10 x 10 annual triangles: it flags the change in `r fmt_pct(calg("trade_error", "control_improvement"))` of trade-error databases and `r fmt_pct(calg("nav_error", "control_improvement"))` of NAV-error databases, against about `r fmt_pct(calg("trade_error", "baseline"))` false alarms in the baseline. A change that the test cannot see on annual data can still be large enough to matter.
+- **Heavy-tail shock.** For unauthorized trading, frequency x severity has relative bias `r fmt_pct(htg("freq_x_sev", "bias"))` and interval coverage `r fmt_pct(htg("freq_x_sev", "cov"))`. BF with a benchmark pattern is close in aggregate (`r fmt_pct(htg("bf_benchmark", "bias"))`), and plain chain-ladder is wildly high because the injected losses are multiplied by large development factors. One injected loss is discovered inside the realised history and one is not (table above), so part of the truth is information the severity pool never contained.
 - **Exposure growth.** Moderate growth changes little for the event types where the methods already work.
-
-## Experimental: ML reserving {#sec-ml}
-
-```{r}
-#| label: ml-setup
-#| include: false
-ml <- readRDS("data/mlreserve.rds")
-cfg <- load_params()$mlreserve
-```
-
-::: {.callout-warning}
-### Experimental, excluded from headline results
-`mlReserve()` comes from a personal fork of the ChainLadder package (`thierrymoudiki/ChainLadder`, pinned to commit `r substr(ml$commit, 1, 8)`, package version `r ml$fork_version`), not from CRAN. Its published evidence is a blog post using simulated insurance triangles. It was installed into an isolated library so the CRAN ChainLadder used on every other page is unaffected. Nothing on this page feeds the executive summary.
-:::
-
-### What it does
-
-`mlReserve()` fits a machine-learning regression (here a random forest from `ranger` or a support vector machine from `e1071`) to the observed cells of a triangle, using origin and development period as features, and predicts the unobserved cells. It is a different idea from chain-ladder's multiplicative development factors.
-
-### The test
-
-Same simulated databases as the baseline validation (replications 1-`r cfg$n_reps`), annual dollar triangles, scored on the undiscovered loss inside the window. Four configurations are run and **all are reported**; none was chosen using the true values. The first is the setting used in the blog post. Point estimates only (no bootstrap intervals).
-
-```{r}
-#| label: tbl-ml-configs
-tibble(Configuration = names(cfg$configs),
-       Learner = map_chr(cfg$configs, "learner"), Features = map_chr(cfg$configs, "features"), Transform = map_chr(cfg$configs, "transform")) |>
-  gt::gt()
-```
-
-```{r}
-#| label: ml-scores
-ref <- res$reps |>
-  filter(scenario == "baseline", granularity == "annual", kind == "amount", rep <= cfg$n_reps,
-         method %in% c("mack", "boot", "freq_x_sev")) |>
-  transmute(type, config = method_lab[method], est = if_else(status == "ok", est, NA_real_), truth = truth_window, rep)
-mlr <- ml$results |> transmute(type, config = paste("mlReserve:", config), est = if_else(status == "ok", est, NA_real_), truth, rep)
-cmp <- bind_rows(ref, mlr)
-sc_ml <- cmp |>
-  summarise(
-    usable = sum(is.finite(est)),
-    rel_bias = sum(est - truth, na.rm = TRUE) / sum(truth[is.finite(est)]),
-    median_ratio = median(est / truth, na.rm = TRUE),
-    .by = c(type, config)
-  ) |>
-  mutate(type = factor(type_lab[type], levels = type_lab)) |>
-  arrange(type, config)
-```
-
-```{r}
-#| label: tbl-ml
-sc_ml |>
-  gt::gt(groupname_col = "type") |>
-  gt::fmt_percent(rel_bias, decimals = 0) |>
-  gt::fmt_number(median_ratio, decimals = 2) |>
-  gt::cols_label(config = "Method", usable = "Usable fits", rel_bias = "Relative bias", median_ratio = "Median estimate / truth") |>
-  gt::sub_missing(missing_text = "-")
-```
-
-```{r}
-#| label: fig-ml
-#| fig-height: 5
-cmp |>
-  filter(is.finite(est), truth > 0) |>
-  mutate(ratio = est / truth, type = factor(type_lab[type], levels = type_lab),
-         ml = str_detect(config, "^mlReserve")) |>
-  ggplot(aes(ratio, fct_rev(config), fill = ml)) +
-  geom_vline(xintercept = 1, colour = "grey40") +
-  geom_boxplot(outlier.size = 0.6, linewidth = 0.3) +
-  facet_wrap(~type, nrow = 1) +
-  scale_x_log10(labels = \(x) paste0(x, "x")) +
-  scale_fill_manual(values = c(`TRUE` = "#E69F00", `FALSE` = "#0072B2"), guide = "none") +
-  labs(x = "Estimate / truth (log scale; 1x = exact)", y = NULL, title = "mlReserve vs. classical methods on the same databases") +
-  theme_op()
-```
-
-```{r}
-#| label: ml-text
-mlsc <- sc_ml |> filter(str_detect(config, "^mlReserve"))
-closest <- \(t) mlsc |> filter(type == t) |> slice_min(abs(log(median_ratio)), n = 1)
-worst <- \(t) mlsc |> filter(type == t) |> slice_max(abs(log(median_ratio)), n = 1)
-mack <- \(t) sc_ml |> filter(type == t, config == "Mack")
-nav_c <- closest("NAV errors"); trade_c <- closest("Trade errors"); un_c <- closest("Unauthorized trading")
-asinh_trade <- sc_ml |> filter(type == "Trade errors", config == "mlReserve: rf_asinh_numeric")
-```
-
-#### Reading the result
-
-- **Every `mlReserve` configuration overestimates on the two event types where classical methods work.** For NAV errors the closest configuration (`r nav_c$config`) has a median estimate/truth ratio of `r round(nav_c$median_ratio, 1)`, against `r round(mack("NAV errors")$median_ratio, 2)` for Mack. For trade errors the closest (`r trade_c$config`) is `r round(trade_c$median_ratio, 0)`x the truth, against `r round(mack("Trade errors")$median_ratio, 2)` for Mack.
-- **Why:** on a single triangle, the learner extrapolates an upward trend across origin years into cells that, in this simulator, are nearly fully developed. With 10 origin years there are only 55 training cells and tree/kernel learners have no development-factor structure to anchor them.
-- **The blog's `asinh` transform, applied to dollar values,** gives a median ratio of `r round(asinh_trade$median_ratio, 0)` for trade errors, worse than the same learner with no transform in the cases we ran; it may be calibrated for much smaller numeric scales, and we did not test rescaling the data first.
-- **Unauthorized trading:** the closest configuration (`r un_c$config`, median ratio `r round(un_c$median_ratio, 1)`) is not a useful comparison either way, since the truth is small and the estimates are highly dispersed.
-- We report the configurations after the fact for transparency; none was selected using the truth, and "closest" above describes this experiment, not a recommendation.
-
-Taken together, this is a limited test, on one data-generating process, with no tuning, of an unreleased fork. It gives no support for using `mlReserve` here, and it does not show that the approach cannot work with more data or tuning.
+- **Overdispersion.** Interval coverage falls for the methods that have intervals: Mack covers `r fmt_pct(get_cov("overdispersion", "trade_error", "mack"))` of trade-error databases and bootstrap `r fmt_pct(get_cov("overdispersion", "trade_error", "boot"))`, against `r fmt_pct(geta("trade_error", "mack", "coverage_usable"))` and `r fmt_pct(geta("trade_error", "boot", "coverage_usable"))` in the baseline. Clustered or overdispersed counts make the stated 95% intervals less trustworthy.
+- **Reporting threshold.** A $10k threshold removes most trade errors from the database (the true undiscovered trade-error amount falls from `r fmt_usd(get_s("baseline", "Trade errors", "Chain-ladder (vol-weighted)", "Truth"))` to `r fmt_usd(get_s("reporting_threshold_10k", "Trade errors", "Chain-ladder (vol-weighted)", "Truth"))`) while NAV errors and unauthorized trading are barely affected; for trade and NAV errors the standard methods still work on what remains (unauthorized-trading means are dominated by a few databases and vary a lot between scenarios).

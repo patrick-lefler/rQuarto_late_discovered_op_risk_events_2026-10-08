@@ -12,6 +12,9 @@ horizon:
   n_lag: 40             # discovery lags 0..39 inside the window; lag >= 40 is "tail"
   status: assumption
 
+reporting_threshold_usd: 0   # events below this loss are not recorded (collection threshold); real databases often use $10k-$20k
+                             # status: assumption
+
 exposure:
   base: 1.0
   growth_per_quarter: 0.01   # ~4% p.a. volume growth; range 0 - 0.03
@@ -25,6 +28,8 @@ replication:
     heavy_tail_shock: [annual]
     control_improvement: [annual]
     exposure_growth: [annual]
+    overdispersion: [annual]
+    reporting_threshold_10k: [annual]
   recent_quarters: 4    # "recent" = latest 4 origin quarters (1 annual period)
   status: assumption
 
@@ -81,6 +86,12 @@ scenarios:
       - {type: unauthorized_trading, origin: 12, lag: 15, severity: 60000000}
       - {type: unauthorized_trading, origin: 20, lag: 22, severity: 40000000}
   control_improvement:
-    control_shift: {calendar_quarter: 24, reduction: 0.5}   # remaining time-to-discovery halves after Q24
+    # time remaining to discovery, measured from max(origin, quarter 24), falls by `reduction` (stochastic rounding)
+    control_shift: {calendar_quarter: 24, reduction: 0.5}
   exposure_growth:
     exposure: {growth_per_quarter: 0.03}
+  overdispersion:                    # negative-binomial counts with the same mean; var = mu + mu^2 / size (assumption)
+    count_dist: negbin
+    count_size: {trade_error: 20, nav_error: 6, unauthorized_trading: 1}
+  reporting_threshold_10k:           # losses below $10k are never recorded (assumption)
+    reporting_threshold_usd: 10000
