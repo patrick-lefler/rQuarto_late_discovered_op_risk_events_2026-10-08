@@ -31,6 +31,12 @@ tibble(
   gt::fmt_currency(`Annual cost (assumed)`, decimals = 0)
 ```
 
+**How to read the table** <br/>
+Each row is a detection control, with what it does and the annual cost assumed for it.
+
+**What the table tells you** <br/>
+The two controls differ in scope and price: automated reconciliation costs `r fmt_usd(params$controls$recon_automation$annual_cost_usd, 0)` a year and mainly speeds up NAV and unauthorized-trading detection, while independent P&L verification costs `r fmt_usd(params$controls$independent_pnl_verification$annual_cost_usd, 0)` and also speeds up trade-error detection. The costs are placeholders, not quotes.
+
 Each control shifts the lag distribution for some event types (see `params.yaml`). Baseline and control arms use the **same seeds**, so each pair of runs shares event counts and severity draws, and the saving is a paired difference.
 
 ## Result: expected loss and tail
@@ -56,6 +62,12 @@ ctl |>
   gt::sub_missing(missing_text = "-") |>
   gt::tab_source_note("VaR/ES are over single origin-year totals pooled across 200 databases (2,000 years), so ES95 averages about 100 tail years. Savings are paired against the baseline arm. At full effectiveness the saving is also the most the control could cost and still break even.")
 ```
+
+**How to read the table** <br/>
+Each row is a scenario: no control, or one of the two controls. The table shows average loss per year, the saving against no control, the assumed cost, the net benefit, the loss still undiscovered at the end of year 10, and the loss in a bad year (VaR) and in the worst 5% of years (ES).
+
+**What the table tells you** <br/>
+Both controls roughly pay for themselves on average loss alone, with net benefits of `r fmt_usd(ctl$net_benefit_per_year[ctl$arm == "recon_automation"], 0)` and `r fmt_usd(ctl$net_benefit_per_year[ctl$arm == "independent_pnl_verification"], 0)` a year. They also roughly halve the loss that has happened but is still unrecorded at the end of the history, from `r fmt_usd(ctl$mean_undiscovered[ctl$arm == "baseline"])` to between `r fmt_usd(ctl$mean_undiscovered[ctl$arm == "independent_pnl_verification"])` and `r fmt_usd(ctl$mean_undiscovered[ctl$arm == "recon_automation"])`, and they lower loss in bad years.
 
 ```{r}
 #| label: ctl-text
@@ -85,6 +97,12 @@ bind_rows(
   theme_op()
 ```
 
+**How to read the plot** <br/>
+Each pair of bars shows the loss in a bad year (the "95% VaR": 1 year in 20 is worse) and the average loss in the worst 5% of years (the "95% ES"), with and without each control. The black whiskers show the uncertainty from using a finite number of simulated years.
+
+**What the plot tells you** <br/>
+Both controls lower both tail measures, with independent P&L verification lowering them most. The whiskers overlap for the worst-years measure, so the exact size is uncertain, but comparing each control with the same simulated years shows the reduction is clearly above zero.
+
 ## How effective must a control be? Break-even
 
 The size of the lag reduction is the least certain input. Scaling each control's assumed shift by a factor (1 = as assumed, 0 = no effect) shows where the mean saving equals the annual cost.
@@ -105,6 +123,12 @@ ggplot(be$curve, aes(scale, net, colour = control)) +
   theme_op()
 ```
 
+**How to read the plot** <br/>
+The horizontal axis is the share of the promised reduction in detection time that a control actually delivers (100% is as assumed). The vertical axis is net benefit per year, so the point where a line crosses zero is the break-even level, and the shaded band is simulation noise only.
+
+**What the plot tells you** <br/>
+Reconciliation automation must deliver about `r fmt_pct(be$break_even$break_even_scale[be$break_even$control == "recon_automation"])` of its promised improvement to pay for itself, and independent P&L verification about `r fmt_pct(be$break_even$break_even_scale[be$break_even$control == "independent_pnl_verification"])`. The second is far less forgiving: it has little margin for the control to under-deliver.
+
 ```{r}
 #| label: be-table
 be$break_even |>
@@ -118,6 +142,12 @@ be$break_even |>
   gt::fmt_currency(c(`Assumed annual cost`, `Max cost at break-even (full effect)`), decimals = 0, suffixing = TRUE) |>
   gt::sub_missing(missing_text = "not reached on grid")
 ```
+
+**How to read the table** <br/>
+The table restates the break-even points from the plot as percentages, and adds the most each control could cost and still pay for itself if it works exactly as promised.
+
+**What the table tells you** <br/>
+The cheaper control has more slack both ways: it can under-deliver more, and the assumed cost sits well below its break-even cost. The independent P&L control is close to its limit on both measures.
 
 The band reflects Monte Carlo error only. It does **not** include uncertainty in the cost, the lag shift, or the severity-growth assumption, which are likely larger.
 
@@ -145,6 +175,12 @@ sens |>
   labs(x = "Multiplier on severity growth e (0 = losses do not grow while undiscovered)", y = NULL) +
   theme_op()
 ```
+
+**How to read the plot** <br/>
+The horizontal axis scales how quickly loss grows while an event stays hidden (1 is the assumption used everywhere else, 0 means loss does not grow at all). The vertical axes show the yearly saving (left) and the reduction in worst-year loss (right) for each control.
+
+**What the plot tells you** <br/>
+The dollar value of both controls depends entirely on this one assumption: with no growth the savings are zero, and at half the assumed growth `r fmt_usd(sens$mean_saving_per_year[sens$e_mult == 0.5 & sens$arm == "recon_automation"], 0)` a year does not cover reconciliation automation's cost. A firm should measure how much its own losses grow while undiscovered before relying on the dollar figures.
 
 ```{r}
 #| label: sens-text

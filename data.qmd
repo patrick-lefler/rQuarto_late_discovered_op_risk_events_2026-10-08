@@ -52,7 +52,16 @@ tibble(
   gt::tab_source_note("All values are judgement-based assumptions (status: assumption in params.yaml), with no calibration to public loss data. Total expected loss is checked against a 10-15 bps of AUM target in the sanity check below; plausible ranges are given beside each value in params.yaml.")
 ```
 
-## Discovery-lag distributions
+**How to read the table** <br/>
+Each row is an event type. The columns show how often events occur, how many quarters they typically take to be found (median and 90th percentile), how large they are, and how much their size grows for each quarter they stay hidden.
+
+**What the table tells you** <br/>
+The three event types are very different risks. Trade errors are frequent (about `r sprintf("%.0f", params$event_types$trade_error$lambda)` a quarter) and small, and are found at once, while unauthorized trading is rare (about one event a year) but large, takes a median of `r lag_stats$median[lag_stats$type == "Unauthorized trading"]` quarters to find, and grows the most while hidden.
+
+**Parameters table insights** <br/>
+The three event types differ mainly in how often they occur, how fast they are found, and how large they are. Trade errors are frequent, small and found at once, while unauthorized trading is rare (about one event every three years) but large, found only after about six quarters in the typical case, and the late ones can take up to five or six years.
+
+## Discovery-Lag Distributions
 
 ```{r}
 #| label: fig-lags
@@ -72,9 +81,15 @@ lags |>
   theme_op()
 ```
 
-Median lags are `r paste(lag_stats$type, lag_stats$median, sep = ": ", collapse = ", ")` quarters. The share of events discovered **after** the 40-quarter window is `r paste0(lag_stats$type, " ", fmt_pct(lag_stats$beyond_window, 1), collapse = ", ")`.
+**How to read the Discovery-Lag Distributions plot** <br/>
+Each bar shows the share of events found a given number of quarters after they happened, so bars clustered at the left mean fast detection and a long spread to the right means slow detection.
 
-Few events fall outside the window, but for unauthorized trading they matter. Those events are scaled by up to $1 + e \times 40 =$ `r sprintf("%.1f", 1 + params$event_types$unauthorized_trading$severity$lag_elasticity * params$horizon$n_lag)` times their initial size, and the denominator is only the loss that is still undiscovered. So the `r fmt_pct(lag_stats$beyond_window[lag_stats$type == "Unauthorized trading"], 1)` of unauthorized-trading events beyond the window carry about `r fmt_pct(tail_share(res$reps, "unauthorized_trading"))` of the true undiscovered unauthorized-trading loss at the evaluation date (baseline, annual granularity, `r res$meta$n_reps` databases). This is why a chain-ladder method confined to the window misses so much of that line.
+**What the plot tells you** <br/>
+Detection speed differs sharply by event type. The median number of quarters to discovery is `{r} paste(lag_stats$type, lag_stats$median, sep = ": ", collapse = ", ")`, so trade errors are found almost at once while unauthorized trading often runs for years. The share of events discovered after the 40-quarter window is `{r} paste0(lag_stats$type, " ", fmt_pct(lag_stats$beyond_window, 1), collapse = ", ")`, so few events fall outside the window, but for unauthorized trading they matter. <br/>
+
+Loss grows while an event stays hidden, up to `{r} sprintf("%.1f", 1 + params$event_types$unauthorized_trading$severity$lag_elasticity * params$horizon$n_lag)` times the initial size, and the measure here counts only loss that is still undiscovered. So the `{r} fmt_pct(lag_stats$beyond_window[lag_stats$type == "Unauthorized trading"], 1)` of unauthorized-trading events beyond the window carry about `{r} fmt_pct(tail_share(res$reps, "unauthorized_trading"))` of the true undiscovered unauthorized-trading loss at the evaluation date (baseline, annual granularity, `{r} res$meta$n_reps` databases). <br/>
+
+This is why a standard method that looks only inside the 10-year history misses so much of that line.
 
 ## Sanity check: size of the losses
 
@@ -106,6 +121,17 @@ bind_rows(
   gt::tab_source_note(sprintf("Single-year total loss, pooled over %d databases x %d origin years: median %.1f bps, 95th percentile %.1f bps of AUM (VaR95 %s). Targeted range: 10-15 bps mean; this is an assumption, not a benchmark.",
                               n_distinct(sims$rep), n_years, median(year_totals$inc) / aum * 1e4, quantile(year_totals$inc, .95) / aum * 1e4, fmt_usd(quantile(year_totals$inc, .95), 2)))
 ```
+
+**How to read the table** <br/>
+Each row is an event type, showing how many events happen a year, the average yearly loss in dollars, and that loss as basis points (hundredths of a percent) of assets under management. The last row is the total for all types, and the note under the table shows how bad a single year can get.
+
+**What the table tells you** <br/>
+Total expected loss is about `r fmt_usd(mean(year_totals$inc))` a year, or `r sprintf("%.0f", mean(year_totals$inc) / aum * 1e4)` bps of assets, inside the 10-15 bps target. Trade errors are most of the events but a small share of the dollars, unauthorized trading is about `r sprintf("%.1f", by_type[["Events / yr"]][by_type$type == "unauthorized_trading"])` events a year but roughly `r fmt_pct(by_type[["Mean loss / yr"]][by_type$type == "unauthorized_trading"] / mean(year_totals$inc))` of the loss, and a bad year (95th percentile) is about `r sprintf("%.0f", quantile(year_totals$inc, .95) / aum * 1e4)` bps, so the simulated firm is neither implausibly safe nor implausibly loss-making.
+
+**Sanity check table insights** <br/>
+Total expected loss is about $6.0M a year, or 12 basis points of the assumed $5B in assets, which sits within the 10–15 bps target range. Trade errors make up nearly all of the roughly 325 events a year but only a fifth of the loss (2.5 of 12.1 bps), while the 1.4 unauthorized events a year are about 40% of it (4.9 bps), and a bad year (95th percentile) runs to about 23 bps, close to $11.5M.
+
+One note on item 2: the "quarters" in the plot are discovery lags, while the "10-year window" is the horizon of the simulated loss history. If a board member might confuse the two, I'd say "10-year history" in place of "10-year window".
 
 ## Scenarios
 

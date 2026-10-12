@@ -101,6 +101,12 @@ tibble(File = basename(files), `SHA-256 of content` = map_chr(files, \(f) substr
 })) |> gt::gt()
 ```
 
+**How to read the table** <br/>
+Each row is a stored results file, with a short fingerprint of its contents and the number of rows.
+
+**What the table tells you** <br/>
+If you rebuild the project and get the same fingerprints, you have reproduced the same results; a different fingerprint means the inputs, code or software versions differ.
+
 ```{r}
 #| label: stale
 current_md5 <- unname(tools::md5sum("params.yaml"))
@@ -122,6 +128,12 @@ td |>
   summarise(Tests = n(), Expectations = sum(nb), Failed = sum(failed), Errors = sum(error), Warnings = sum(warning), Skipped = sum(skipped), .by = file) |>
   gt::gt()
 ```
+
+**How to read the table** <br/>
+Each row is a group of automated checks on the code, counting how many ran and how many failed, errored or were skipped.
+
+**What the table tells you** <br/>
+All `r sum(td$nb)` checks across `r nrow(td)` tests ran with `r sum(td$failed)` failures and `r sum(td$error)` errors, so the calculations behind the site, from triangle building to scoring, behaved as designed when this page was last built.
 
 What the tests cover:
 

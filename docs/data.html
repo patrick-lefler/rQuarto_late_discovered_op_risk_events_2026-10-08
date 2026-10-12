@@ -195,7 +195,7 @@ window.Quarto = {
   <ul>
   <li><a href="#generator-design" id="toc-generator-design" class="nav-link active" data-scroll-target="#generator-design">Generator design</a></li>
   <li><a href="#parameters" id="toc-parameters" class="nav-link" data-scroll-target="#parameters">Parameters</a></li>
-  <li><a href="#discovery-lag-distributions" id="toc-discovery-lag-distributions" class="nav-link" data-scroll-target="#discovery-lag-distributions">Discovery-lag distributions</a></li>
+  <li><a href="#discovery-lag-distributions" id="toc-discovery-lag-distributions" class="nav-link" data-scroll-target="#discovery-lag-distributions">Discovery-Lag Distributions</a></li>
   <li><a href="#sanity-check-size-of-the-losses" id="toc-sanity-check-size-of-the-losses" class="nav-link" data-scroll-target="#sanity-check-size-of-the-losses">Sanity check: size of the losses</a></li>
   <li><a href="#scenarios" id="toc-scenarios" class="nav-link" data-scroll-target="#scenarios">Scenarios</a></li>
   </ul>
@@ -776,9 +776,12 @@ Table&nbsp;1
 </figure>
 </div>
 </div>
+<p><strong>How to read the table</strong> <br> Each row is an event type. The columns show how often events occur, how many quarters they typically take to be found (median and 90th percentile), how large they are, and how much their size grows for each quarter they stay hidden.</p>
+<p><strong>What the table tells you</strong> <br> The three event types are very different risks. Trade errors are frequent (about 60 a quarter) and small, and are found at once, while unauthorized trading is rare (about one event a year) but large, takes a median of 6 quarters to find, and grows the most while hidden.</p>
+<p><strong>Parameters table insights</strong> <br> The three event types differ mainly in how often they occur, how fast they are found, and how large they are. Trade errors are frequent, small and found at once, while unauthorized trading is rare (about one event every three years) but large, found only after about six quarters in the typical case, and the late ones can take up to five or six years.</p>
 </section>
 <section id="discovery-lag-distributions" class="level2">
-<h2 class="anchored" data-anchor-id="discovery-lag-distributions">Discovery-lag distributions</h2>
+<h2 class="anchored" data-anchor-id="discovery-lag-distributions">Discovery-Lag Distributions</h2>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -808,8 +811,10 @@ Figure&nbsp;1: Simulated share of events by discovery lag, per event type (200,0
 </div>
 </div>
 </div>
-<p>Median lags are Trade errors: 0, NAV errors: 2, Unauthorized trading: 6 quarters. The share of events discovered <strong>after</strong> the 40-quarter window is Trade errors 0.0%, NAV errors 0.1%, Unauthorized trading 2.7%.</p>
-<p>Few events fall outside the window, but for unauthorized trading they matter. Those events are scaled by up to <span class="math inline">\(1 + e \times 40 =\)</span> 4.2 times their initial size, and the denominator is only the loss that is still undiscovered. So the 2.7% of unauthorized-trading events beyond the window carry about 40% of the true undiscovered unauthorized-trading loss at the evaluation date (baseline, annual granularity, 200 databases). This is why a chain-ladder method confined to the window misses so much of that line.</p>
+<p><strong>How to read the Discovery-Lag Distributions plot</strong> <br> Each bar shows the share of events found a given number of quarters after they happened, so bars clustered at the left mean fast detection and a long spread to the right means slow detection.</p>
+<p><strong>What the plot tells you</strong> <br> Detection speed differs sharply by event type. The median number of quarters to discovery is Trade errors: 0, NAV errors: 2, Unauthorized trading: 6, so trade errors are found almost at once while unauthorized trading often runs for years. The share of events discovered after the 40-quarter window is Trade errors 0.0%, NAV errors 0.1%, Unauthorized trading 2.7%, so few events fall outside the window, but for unauthorized trading they matter. <br></p>
+<p>Loss grows while an event stays hidden, up to 4.2 times the initial size, and the measure here counts only loss that is still undiscovered. So the 2.7% of unauthorized-trading events beyond the window carry about 40% of the true undiscovered unauthorized-trading loss at the evaluation date (baseline, annual granularity, 200 databases). <br></p>
+<p>This is why a standard method that looks only inside the 10-year history misses so much of that line.</p>
 </section>
 <section id="sanity-check-size-of-the-losses" class="level2">
 <h2 class="anchored" data-anchor-id="sanity-check-size-of-the-losses">Sanity check: size of the losses</h2>
@@ -1346,6 +1351,10 @@ Table&nbsp;2
 </figure>
 </div>
 </div>
+<p><strong>How to read the table</strong> <br> Each row is an event type, showing how many events happen a year, the average yearly loss in dollars, and that loss as basis points (hundredths of a percent) of assets under management. The last row is the total for all types, and the note under the table shows how bad a single year can get.</p>
+<p><strong>What the table tells you</strong> <br> Total expected loss is about $6.0M a year, or 12 bps of assets, inside the 10-15 bps target. Trade errors are most of the events but a small share of the dollars, unauthorized trading is about 1.4 events a year but roughly 40% of the loss, and a bad year (95th percentile) is about 23 bps, so the simulated firm is neither implausibly safe nor implausibly loss-making.</p>
+<p><strong>Sanity check table insights</strong> <br> Total expected loss is about $6.0M a year, or 12 basis points of the assumed $5B in assets, which sits within the 10–15 bps target range. Trade errors make up nearly all of the roughly 325 events a year but only a fifth of the loss (2.5 of 12.1 bps), while the 1.4 unauthorized events a year are about 40% of it (4.9 bps), and a bad year (95th percentile) runs to about 23 bps, close to $11.5M.</p>
+<p>One note on item 2: the “quarters” in the plot are discovery lags, while the “10-year window” is the horizon of the simulated loss history. If a board member might confuse the two, I’d say “10-year history” in place of “10-year window”.</p>
 </section>
 <section id="scenarios" class="level2">
 <h2 class="anchored" data-anchor-id="scenarios">Scenarios</h2>
