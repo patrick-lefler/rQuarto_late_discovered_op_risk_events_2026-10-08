@@ -39,6 +39,12 @@ tibble(Configuration = names(cfg$configs),
   gt::gt()
 ```
 
+**How to read the table** <br/>
+Each row is one setting of the machine-learning method: which learning algorithm, which inputs and whether the data were transformed first.
+
+**What the table tells you** <br/>
+Six settings were tried and all are reported, including the setting used in the method's published blog post, and none was chosen after seeing the true answer.
+
 ```{r}
 #| label: ml-scores
 ref <- res$reps |>
@@ -68,6 +74,12 @@ sc_ml |>
   gt::sub_missing(missing_text = "-")
 ```
 
+**How to read the table** <br/>
+Each block is an event type. "Median estimate / truth" shows how many times the true loss the method estimated in a typical database, so 1.00 is exact, 2.00 is twice too high and 0.50 is half.
+
+**What the table tells you** <br/>
+On NAV errors the machine-learning settings are at best `r sprintf("%.1f", min(sc_ml$median_ratio[sc_ml$type == "NAV errors" & grepl("^mlReserve", sc_ml$config)]))` times the truth, against `r sprintf("%.2f", sc_ml$median_ratio[sc_ml$type == "NAV errors" & sc_ml$config == "Mack (package)"])` for the standard Mack method. For trade errors the best is `r sprintf("%.0f", min(sc_ml$median_ratio[sc_ml$type == "Trade errors" & grepl("^mlReserve", sc_ml$config)]))` times, so the experimental method overstates the missing loss by large multiples where standard methods are accurate.
+
 ```{r}
 #| label: fig-ml
 #| fig-height: 5
@@ -84,6 +96,12 @@ cmp |>
   labs(x = "Estimate / truth (log scale; 1x = exact)", y = NULL, title = "mlReserve vs. classical methods on the same databases") +
   theme_op()
 ```
+
+**How to read the plot** <br/>
+Each box shows how far the estimate was from the truth across the simulated databases on a multiplicative scale: 1x is exact, 10x is ten times too high. Blue boxes are the standard methods and orange boxes are the machine-learning settings.
+
+**What the plot tells you** <br/>
+The orange boxes sit far to the right of the blue ones for trade and NAV errors, so the experimental method consistently overstates. For unauthorized trading all methods are widely scattered, so the plot gives no reason to prefer the machine-learning approach there either.
 
 ```{r}
 #| label: ml-text

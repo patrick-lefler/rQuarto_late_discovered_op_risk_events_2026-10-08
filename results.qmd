@@ -12,6 +12,10 @@ s <- score_estimates(res$reps)
 params <- load_params() |> apply_scenario("baseline")
 sa <- s |> filter(kind == "amount", scenario == "baseline", granularity == "annual")
 geta <- \(t, m, col) sa[[col]][sa$type == t & sa$method == m]
+val <- \(kind_, t, m, col, scen = "baseline", gran = "annual") s[[col]][s$kind == kind_ & s$scenario == scen & s$granularity == gran & s$type == t & s$method == m]
+sm_all <- stress_means(res$reps)
+sv <- \(scen, t, m, col) sm_all[[col]][sm_all$scenario == scen & sm_all$type == t & sm_all$method == m]
+cal_flag <- \(t, sc) { z <- res$reps$cal_z[res$reps$method == "mack_ec" & res$reps$kind == "amount" & res$reps$granularity == "annual" & res$reps$type == t & res$reps$scenario == sc]; mean(z < -1.645, na.rm = TRUE) }
 ```
 
 How well can each method estimate the undiscovered loss? Every method is scored against the known truth on `r res$meta$n_reps` simulated databases per scenario. Sections: [summary](#sec-summary), [counts](#sec-counts), [dollar losses](#sec-amounts), [validation across methods](#sec-validation) and [stress tests](#sec-stress). An [experimental machine-learning comparator](ml-appendix.qmd) is on its own page because it does not feed the conclusions.
@@ -41,6 +45,12 @@ best_any |>
   gt::tab_source_note("Baseline, annual dollar triangles. 'Best' = smallest |relative bias|; this is a descriptive ranking on one simulator, and differences of a few percentage points are within simulation noise. For unauthorized trading the severity tail (shape 0.6) has infinite variance, so a few databases dominate every sum and the median signed error is the steadier statistic.")
 ```
 
+**How to read the table** <br/>
+Each row is an event type. The table names the method whose average estimate of the not-yet-found loss came closest to the true amount, and how often the range that method quotes actually contained the truth.
+
+**What the table tells you** <br/>
+For NAV errors a standard method lands within about `r fmt_pct(abs(val("amount", "nav_error", "mack", "rel_bias")))` of the true missing loss, and for trade errors within about `r fmt_pct(abs(val("amount", "trade_error", "mack", "rel_bias")))`, with its quoted range right roughly nine times in ten. For unauthorized trading, even the best method typically understates the missing loss by `r fmt_pct(abs(val("amount", "unauthorized_trading", "freq_x_sev", "median_rel_err")))`, and its quoted range contains the truth only `r fmt_pct(val("amount", "unauthorized_trading", "freq_x_sev", "coverage_usable"))` of the time.
+
 ## Count triangles {#sec-counts}
 
 The first question is **how many** events are still undiscovered. The count triangle has the same shape as the amount triangle but each cell counts events, so it is free of the heavy-tailed severities that make amounts hard.
@@ -54,6 +64,12 @@ sq <- build_square(events, "nav_error", "count", 40, 40, period = 4)$square
 plot_triangle(sq, "NAV errors: event counts by origin year and discovery lag", "Events")
 ```
 
+**How to read the plot** <br/>
+This is the same triangle as on the Overview page, but each box counts events instead of dollars. Each row is a year in which events happened, each column is how many years later they were found, and the fainter orange boxes are events not yet found.
+
+**What the plot tells you** <br/>
+The pattern is the same as for dollars: recent years show few recorded events only because many have not been found yet, so a raw count of recent events understates what has really happened.
+
 ### Results (baseline, annual triangles, 200 simulated databases)
 
 The target is the number of events inside the development window that are not yet discovered. Methods that need a tail beyond the window are not applied to counts.
@@ -63,11 +79,23 @@ The target is the number of events inside the development window that are not ye
 score_gt(s, "count")
 ```
 
+**How to read the table** <br/>
+Each block is an event type and each row a method for estimating how many events are still undiscovered. "Rel. bias" is the average over- or under-estimate (positive means too high), and "Coverage" is how often the method's 95% range contained the true count.
+
+**What the table tells you** <br/>
+Counting missing events is the easy part where events are plentiful: standard methods are within about `r fmt_pct(abs(val("count", "trade_error", "mack", "rel_bias")))` for trade errors and `r fmt_pct(abs(val("count", "nav_error", "mack", "rel_bias")))` for NAV errors. For unauthorized trading, which averages about one event a year, the standard method fails in all `r res$meta$n_reps` databases because there is too little data.
+
 ```{r}
 #| label: fig-count-errors
 #| fig-height: 3.6
 plot_errors(res$reps, "count")
 ```
+
+**How to read the plot** <br/>
+Each box shows how far the estimated number of missing events was from the truth across the 200 simulated databases; the vertical line at zero is a perfect estimate, and a narrower box means a more dependable method.
+
+**What the plot tells you** <br/>
+For trade and NAV errors the boxes sit tightly around zero, so standard methods count missing events reliably. For unauthorized trading only the simplest method produces a count at all, and it is typically `r fmt_pct(abs(val("count", "unauthorized_trading", "chainladder", "median_rel_err")))` too low, so the loss history alone cannot be trusted for that event type.
 
 ```{r}
 #| label: count-text
@@ -100,11 +128,23 @@ The target is the undiscovered loss *inside the 10-year window*. The one tail-ex
 score_gt(s, "amount")
 ```
 
+**How to read the table** <br/>
+This is the same layout as the count table, but for dollars of undiscovered loss. A dash means a method worked in fewer than 20 of the 200 databases, or does not quote a range, so its bias or coverage is not reported.
+
+**What the table tells you** <br/>
+For trade and NAV errors most standard methods are within about 15% of the truth, though the growth-curve methods (Clark) can be far off. For unauthorized trading the package version of Mack produces no answer in any database, and the version forced to run overstates the average by `r fmt_pct(val("amount", "unauthorized_trading", "mack_ec", "rel_bias"))` while its range holds the truth only `r fmt_pct(val("amount", "unauthorized_trading", "mack_ec", "coverage_usable"))` of the time.
+
 ```{r}
 #| label: fig-amount-errors
 #| fig-height: 4.6
 plot_errors(res$reps, "amount", methods = c("chainladder", "mack_ec", "bf", "bf_benchmark", "boot", "freq_x_sev", "clark_ldf_weibull"))
 ```
+
+**How to read the plot** <br/>
+Each box shows how far the estimated dollar loss was from the truth across the 200 simulated databases, for each method and event type. The vertical line at zero is a perfect estimate, boxes to the right overstate the loss, and wider boxes mean less dependable estimates.
+
+**What the plot tells you** <br/>
+Where events are frequent the boxes are narrow and centred near zero, so the loss estimate is dependable. For unauthorized trading they are wide and lopsided: a method can be badly wrong in one database and right in the next, so a single estimate should be read as a rough range, not a point.
 
 ```{r}
 #| label: amount-text
@@ -141,6 +181,12 @@ bv |>
   gt::fmt_percent(c(`Rel. bias`, Coverage), decimals = 0)
 ```
 
+**How to read the table** <br/>
+The table compares two technical settings of the same bootstrap method on trade and NAV errors, showing average bias and how often its range contained the truth.
+
+**What the table tells you** <br/>
+The choice of setting makes no practical difference, so the bootstrap's ranges being somewhat too narrow is not an artifact of how it was configured.
+
 - **Clark curves:** ages are period ends (1 to 10 years), the package default for the average date of loss (half an origin period), `maxage` is the window length, and Cape Cod exposure is the exposure path scaled so that expected loss ratios start near 1. These conventions are the package's own; they are not the cause of the poor trade-error results. The cause is the shape of the data. About `r fmt_pct(1 - geta("trade_error", "clark_ldf_loglogistic", "usable_rate"))` of trade-error loglogistic fits end on the optimiser bound: the package restricts the loglogistic scale (the age by which half the loss is reported) to be at least half a year here, but most trade-error loss is already reported in the first period. The Weibull Cape Cod fit converges to a degenerate curve (median shape `r sprintf("%.2f", cc$omega)`, scale `r sprintf("%.1f", cc$theta)` years) in `r fmt_pct(cc$low_omega)` of trade-error databases, which implies a long thin tail that the oldest origin years do not show. That is a fit to the wrong shape, not exposure scaling, and the resulting `r fmt_pct(geta("trade_error", "clark_cc_weibull", "rel_bias"))` bias stands.
 
 ## Method validation {#sec-validation}
@@ -157,6 +203,12 @@ These are tests of how methods behave **under this simulator**, not proof of how
 plot_scorecard(s, "amount")
 ```
 
+**How to read it** <br/>
+Each tile is one method for one event type. The number is the average over- or under-estimate, "n" is how many of the 200 databases the method produced a usable answer for, darker orange means further from the truth, and grey means the method could not be used.
+
+**What it tells you** <br/>
+No method is dependable for all three event types. The unauthorized-trading column is mostly grey or dark orange, so choosing the right method for each event type matters more than choosing one method for the firm.
+
 ### Scorecard: event counts
 
 ```{r}
@@ -164,6 +216,12 @@ plot_scorecard(s, "amount")
 #| fig-height: 4
 plot_scorecard(s, "count")
 ```
+
+**How to read the plot** <br/>
+This is the same scorecard as above, but for counts of missing events instead of dollars.
+
+**What the plot tells you** <br/>
+Counts are estimated reliably for trade and NAV errors, but for unauthorized trading only the simplest method produces a count at all, which confirms that the difficulty with that event type is how rare it is.
 
 ### Interval coverage
 
@@ -174,6 +232,12 @@ A well-calibrated 95% interval should contain the truth about 95% of the time. M
 #| fig-height: 4.6
 plot_coverage(s, "amount")
 ```
+
+**How to read the plot** <br/>
+Each dot shows how often a method's quoted 95% range actually contained the true loss. The dashed line at 95% is where an honest range should sit, and dots to the left mean the range is too narrow.
+
+**What the plot tells you** <br/>
+Every dot sits at or left of the dashed line, and many are well to the left, so the ranges these methods quote are optimistic and should be widened before being used for a decision. For unauthorized trading the best available method covers the truth only `r fmt_pct(val("amount", "unauthorized_trading", "freq_x_sev", "coverage_usable"))` of the time.
 
 ### Annual vs. quarterly triangles
 
@@ -191,6 +255,12 @@ s |>
   gt::fmt_percent(c(annual, quarterly), decimals = 0) |>
   gt::cols_label(annual = "Annual (10 x 10)", quarterly = "Quarterly (40 x 40)")
 ```
+
+**How to read the table** <br/>
+The table shows the share of databases in which each method produced a usable answer, using yearly data (a 10 x 10 table) and quarterly data (a 40 x 40 table).
+
+**What the table tells you** <br/>
+Finer data is not better for the standard methods: for NAV errors the standard package methods work on yearly data but fail completely on quarterly data, because many cells are empty. Use yearly data unless the loss history is very large.
 
 ### Why fits fail
 
@@ -211,6 +281,12 @@ res$reps |>
   gt::gt(groupname_col = "Type") |>
   gt::tab_source_note("Baseline, annual, dollar triangles; 200 databases per event type, so counts within a type are out of 200 per method.")
 ```
+
+**How to read the table** <br/>
+Each row counts how often a method failed or was flagged as unreliable, and the reason, for the baseline case.
+
+**What the table tells you** <br/>
+Failures are systematic, not random: they come from empty development columns in sparse data and from fitted curves that hit the limits of what the software allows. That is a warning that the data are too thin for the method, not a sign of a one-off error.
 
 ### Reading the results
 
@@ -248,6 +324,12 @@ tibble(
   gt::fmt_currency(Severity, decimals = 0, suffixing = TRUE)
 ```
 
+**How to read the table** <br/>
+The table lists the two very large unauthorized-trading losses added to the stress scenario: when each happened, how long until discovery, and whether it was found by the end of the history.
+
+**What the table tells you** <br/>
+One loss was found inside the history and one was not: the second is discovered after the evaluation date, so it is part of the true undiscovered loss that no method could have seen in the data.
+
 The undiscovered truth in this scenario is therefore mainly the second injected loss: it is not in the realised history, so a method cannot see it in the severity pool.
 
 ### Control improvement: what the shift does
@@ -278,6 +360,12 @@ tibble(Measure = names(rows), Baseline = map_dbl(rows, "Baseline"), `After shift
   gt::tab_source_note("Trade errors, first 40 baseline databases, with the shift applied to the same events (paired). Time remaining is measured from the later of the shift quarter and the event's origin, and rounded stochastically.")
 ```
 
+**How to read the table** <br/>
+The table compares the same trade errors before and after the control improvement, showing how long they take to be found.
+
+**What the table tells you** <br/>
+The improvement does what it is meant to: events originating after it are found in about half the time, and the share of events still undiscovered at the end of the history falls by about half. This is the real change that the estimation methods are then asked to detect.
+
 ### Mean estimate vs. mean truth
 
 Relative errors explode when the true value is near zero, so this page shows **absolute dollars**: the mean undiscovered loss in the window, true and estimated, for the methods that run. Methods with fewer than 20 usable fits are omitted. "Mack, latest 3 diagonals" restricts development factors to the three most recent calendar diagonals, a standard remedy when development changes over calendar time; the "benchmark pattern" BF uses an externally supplied development pattern from the baseline generator, so it does not adapt to a changed pattern either.
@@ -306,6 +394,12 @@ ggplot(d_plot, aes(method, shown)) +
   theme(axis.text.x = element_text(size = 6), strip.text = element_text(size = 7))
 ```
 
+**How to read the plot** <br/>
+Each panel is one event type under one scenario. Blue bars are each method's average estimate of the undiscovered loss, the orange line is the true amount, and bars are cut off at three times the truth with the ratio printed.
+
+**What the plot tells you** <br/>
+When nothing changes, bars sit on the orange line. After a control improvement the standard methods overstate trade errors by `r fmt_pct(sv("control_improvement", "Trade errors", "Mack (package)", "Estimate") / sv("control_improvement", "Trade errors", "Mack (package)", "Truth") - 1)` because they assume the old, slower detection still applies, while using only the latest three diagonals of data brings the estimate close to the truth.
+
 ```{r}
 #| label: tbl-stress
 d |>
@@ -317,6 +411,12 @@ d |>
   gt::gt(groupname_col = "Scenario") |>
   gt::fmt_currency(c(Truth, Estimate, Error), decimals = 0, suffixing = TRUE)
 ```
+
+**How to read the table** <br/>
+The table lists the same stress results in dollars: the true undiscovered loss, each method's average estimate, and the error (estimate minus truth).
+
+**What the table tells you** <br/>
+The errors are small for trade and NAV errors in most scenarios and large for unauthorized trading, where the standard chain-ladder method can overstate the loss many times over. This is why a firm should not rely on one method for rare, large events.
 
 ### Can a calendar-diagonal test see the change?
 
@@ -334,6 +434,12 @@ res$reps |>
   gt::fmt_number(`Mean z`, decimals = 2) |>
   gt::fmt_percent(`Flagged (z < -1.645)`, decimals = 0)
 ```
+
+**How to read the table** <br/>
+The table shows how often a simple alarm, which compares the latest two years of development with earlier years, signals that detection has changed.
+
+**What the table tells you** <br/>
+The alarm rarely fires when nothing has changed, but it also catches the real control improvement in only `r fmt_pct(cal_flag("trade_error", "control_improvement"))` of trade-error databases and `r fmt_pct(cal_flag("nav_error", "control_improvement"))` of NAV-error databases. A firm should not wait for a statistical alarm before checking whether an improved control has changed its loss pattern.
 
 ```{r}
 #| label: stress-numbers

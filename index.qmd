@@ -98,9 +98,14 @@ sq <- build_square(events, "nav_error", "amount", n_o, n_l, period = 4)$square
 plot_triangle(sq, "NAV errors: recorded vs. not yet discovered", "Loss")
 ```
 
-### The artifact: reported losses fall, true losses do not
+**How to read the plot** <br/>
+Each row is a year in which errors happened, and each column is how many years later they were found. Blue boxes are losses already found and recorded, with darker blue meaning a larger loss. Orange boxes are real losses that exist but have not been found yet, which we can show only because the data are simulated.
 
-Averaging 100 simulated databases, the figure below compares what the database *reports* for each origin quarter with the true incurred loss. The gap opens in the last few years and is widest for the event types with the longest detection lags.
+**What the plot tells you** <br/>
+The most recent years (bottom rows) are mostly unfilled because their losses have not had time to surface, so they look cleaner than they are. Loss can also arrive a year or more late: the biggest orange box is year 10's losses expected to be found one year later.
+
+
+### The artifact: reported losses fall, true losses do not
 
 ```{r}
 #| label: fig-gap
@@ -121,7 +126,16 @@ ggplot(by_origin, aes(origin)) +
   theme_op()
 ```
 
-For the latest four origin quarters in the baseline scenario, the share of true incurred loss that is not yet in the database averages **`r fmt_pct(g[["trade_error"]])`** for trade errors, **`r fmt_pct(g[["nav_error"]])`** for NAV errors and **`r fmt_pct(g[["unauthorized_trading"]])`** for unauthorized trading (median `r fmt_pct(gm[["unauthorized_trading"]])`). These shares depend on the assumed lag distributions (see [Synthetic Data](data.qmd)); they illustrate the mechanism, not any real firm.
+**How to read the plot.** <br/>
+For each event type, the line is the true loss that actually happened in each quarter, and the shaded area is the part of it the database has recorded by the end of quarter 40. Where the shading falls below the line, loss has occurred but is not yet visible.
+
+**What the plot tells you.** <br/>
+Recorded loss drops away in the most recent quarters while true loss does not, so a falling trend in recent reports can be an artifact of late discovery and not a real improvement. For the latest four origin quarters in the baseline scenario, the share of true incurred loss that is not yet in the database averages `{r} fmt_pct(g[["trade_error"]])` for trade errors, 
+`{r} fmt_pct(g[["nav_error"]])` for NAV errors and `{r} fmt_pct(g[["unauthorized_trading"]])` for unauthorized trading. <br/>
+
+For unauthorized trading the typical (median) database has `{r} fmt_pct(gm[["unauthorized_trading"]])` of that loss still unrecorded, and its largest losses, the spikes in the chart, are often not yet visible at all. These shares depend on the assumed lag distributions (see Synthetic Data); they illustrate the mechanism, not any real firm.
+
+
 
 ### What the rest of the site tests
 
