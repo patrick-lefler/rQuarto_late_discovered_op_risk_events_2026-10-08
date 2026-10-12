@@ -2,10 +2,12 @@
 type_lab <- c(trade_error = "Trade errors", nav_error = "NAV errors", unauthorized_trading = "Unauthorized trading")
 type_col <- c("Trade errors" = "#0072B2", "NAV errors" = "#E69F00", "Unauthorized trading" = "#D55E00")
 method_lab <- c(
-  chainladder = "Chain-ladder (vol-weighted)", mack = "Mack", boot = "Bootstrap",
+  chainladder = "Chain-ladder (vol-weighted)", mack = "Mack (package)", mack_ec = "Mack (empty columns = 1)",
+  mack_last3 = "Mack (latest 3 diagonals)", bf = "Bornhuetter-Ferguson", benktander = "Benktander",
+  bf_benchmark = "BF (benchmark pattern)", benktander_benchmark = "Benktander (benchmark pattern)", boot = "Bootstrap",
   clark_ldf_loglogistic = "Clark LDF loglogistic", clark_ldf_weibull = "Clark LDF Weibull",
   clark_ldf_loglogistic_tail = "Clark LDF loglogistic + tail", clark_cc_weibull = "Clark Cape Cod Weibull",
-  freq_x_sev = "Frequency x severity"
+  freq_x_sev = "Frequency x severity", freq_x_sev_uplift = "Frequency x severity (pooled, uplift)"
 )
 method_order <- unname(method_lab)
 ctl_lab <- c(baseline = "Baseline", recon_automation = "Reconciliation automation", independent_pnl_verification = "Independent P&L verification")
@@ -38,6 +40,9 @@ load_results <- function(dir = "data") {
     reps = readRDS(file.path(dir, "replications.rds")),
     ctl = readRDS(file.path(dir, "control_study.rds")),
     be = readRDS(file.path(dir, "control_breakeven.rds")),
+    ctl_sens = readRDS(file.path(dir, "control_sensitivity.rds")),
+    ctl_tail = readRDS(file.path(dir, "control_tail_ci.rds")),
+    ctl_tail_diff = readRDS(file.path(dir, "control_tail_diff.rds")),
     meta = readRDS(file.path(dir, "run_meta.rds"))
   )
 }
@@ -127,13 +132,53 @@ score_gt <- function(s, kind_, scen = "baseline", gran = "annual") {
     dplyr::filter(kind == kind_, scenario == scen, granularity == gran) |>
     label_scores() |>
     dplyr::arrange(type, method) |>
+    dplyr::mutate(
+      # fewer than min_usable fits is not interpretable: show a dash rather than a bias, coverage or error
+      dplyr::across(c(rel_bias, median_rel_err, coverage_usable, rel_bias_recent), \(x) dplyr::if_else(n_usable >= min_usable, x, NA_real_)),
+      coverage_all = dplyr::if_else(has_interval, coverage_all, NA_real_),
+      median_rel_err = dplyr::if_else(is.finite(median_rel_err) & abs(median_rel_err) < 0.005, 0, median_rel_err)
+    ) |>
     dplyr::transmute(
       Type = type, Method = method, `Usable (of 200)` = n_usable, Failed = n_failed, Suspect = n_suspect,
-      `Rel. bias` = rel_bias, `Median rel. error` = median_rel_err, `Coverage (usable)` = coverage_usable,
+      `Rel. bias` = rel_bias, `Median signed rel. error` = median_rel_err,
+      `Coverage (usable fits)` = coverage_usable, `Coverage (all fits)` = coverage_all,
       `Recent-origin bias` = rel_bias_recent
     ) |>
     gt::gt(groupname_col = "Type") |>
-    gt::fmt_percent(c(`Rel. bias`, `Median rel. error`, `Coverage (usable)`, `Recent-origin bias`), decimals = 0) |>
+    gt::fmt_percent(c(`Rel. bias`, `Median signed rel. error`, `Coverage (usable fits)`, `Coverage (all fits)`, `Recent-origin bias`), decimals = 0) |>
     gt::sub_missing(missing_text = "-") |>
-    gt::tab_source_note("Relative bias = sum(estimate - truth) / sum(truth) over usable fits. Fits flagged failed or suspect are excluded from bias and counted as non-covering in coverage_all. Rows with fewer than 20 usable fits are not interpretable.")
+    gt::tab_source_note(paste(
+      "Relative bias = sum(estimate - truth) / sum(truth) over usable fits.",
+      "Coverage (usable fits) = share of usable fits whose 95% interval contains the truth; Coverage (all fits) counts failed, suspect and interval-free fits as misses.",
+      "Recent-origin bias = relative bias restricted to the most recent origin period (latest 4 quarters).",
+      "Failed or suspect fits are excluded from bias. A dash means fewer than 20 usable fits (not interpretable) or no interval."
+    ))
+}
+
+# Share of the true undiscovered loss that lies beyond the development window (discovery lag >= n_lag),
+# pooled over replications. Uses the chain-ladder rows only because they carry one truth row per database.
+tail_share <- function(reps, type_, scen = "baseline", gran = "annual") {
+  d <- reps |>
+    dplyr::filter(method == "chainladder", kind == "amount", scenario == scen, granularity == gran, type == type_)
+  1 - sum(d$truth_window) / sum(d$truth_total)
+}
+
+# Mean estimate vs. mean truth of undiscovered dollar loss (usable fits only), by scenario, type and method.
+stress_means <- function(reps, methods = c("chainladder", "mack", "mack_last3", "bf_benchmark", "boot", "freq_x_sev", "freq_x_sev_uplift")) {
+  reps |>
+    add_target() |>
+    dplyr::filter(kind == "amount", granularity == "annual", status == "ok", is.finite(est), method %in% methods) |>
+    dplyr::summarise(Estimate = mean(est), Truth = mean(truth), n = dplyr::n(), .by = c(scenario, type, method)) |>
+    dplyr::mutate(
+      scenario = factor(scenario, levels = c("baseline", "heavy_tail_shock", "control_improvement", "exposure_growth", "overdispersion", "reporting_threshold_10k")),
+      type = factor(type_lab[type], levels = type_lab),
+      method = factor(method_lab[method], levels = method_order)
+    )
+}
+
+# Share of events whose discovery lag falls at or beyond the window, from a large fixed-seed draw of the lag
+# mixture (so the Data and Overview pages quote the same number).
+beyond_window_share <- function(params, n = 2e5, seed = 1) {
+  set.seed(seed)
+  purrr::map_dbl(params$event_types, \(spec) mean(draw_lag(n, spec$lag) >= params$horizon$n_lag))
 }

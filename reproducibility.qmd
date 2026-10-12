@@ -1,5 +1,7 @@
 ---
 title: "Reproducibility and Limitations"
+execute:
+  freeze: false
 ---
 
 ```{r}
@@ -8,9 +10,14 @@ title: "Reproducibility and Limitations"
 library(tidyverse)
 for (f in list.files("R", full.names = TRUE)) source(f)
 res <- load_results()
+git_state <- function() {
+  sha <- tryCatch(system2("git", c("rev-parse", "--short", "HEAD"), stdout = TRUE, stderr = FALSE), error = \(e) character())
+  dirty <- tryCatch(length(system2("git", c("status", "--porcelain", "--untracked-files=no"), stdout = TRUE, stderr = FALSE)) > 0, error = \(e) NA)
+  if (length(sha) == 0) "not a git checkout" else paste0(sha, if (isTRUE(dirty)) " (uncommitted changes)" else "")
+}
 ```
 
-This page documents how to rebuild every number on the site, and checks a few of those claims live each time it is rendered.
+This page documents how to rebuild every number on the site, and checks a few of those claims live: the tests, the environment status and the parameter staleness check re-run every time this page is rendered (it is excluded from the project-wide `freeze: auto` cache).
 
 ## One command
 
@@ -28,8 +35,8 @@ Rscript run_all.R               # simulations -> mlReserve experiment -> site in
 ```{r}
 #| label: env
 tibble(
-  Item = c("R", "Platform", "ChainLadder (CRAN, used for all headline results)", "mlReserve fork (isolated library)", "Fork commit", "Quarto"),
-  Value = c(R.version.string, R.version$platform, as.character(packageVersion("ChainLadder")),
+  Item = c("Rendered", "Project git commit", "R", "Platform", "ChainLadder (CRAN, used for all headline results)", "mlReserve fork (isolated library)", "Fork commit", "Quarto"),
+  Value = c(format(Sys.time(), "%Y-%m-%d %H:%M %Z"), git_state(), R.version.string, R.version$platform, as.character(packageVersion("ChainLadder")),
             readRDS("data/mlreserve.rds")$fork_version, readRDS("data/mlreserve.rds")$commit,
             trimws(system2("quarto", "--version", stdout = TRUE)))
 ) |> gt::gt()
@@ -62,11 +69,15 @@ Seeds depend on the replication number, the scenario index and the event-type in
 
 Every simulator parameter lives in one file. `status: assumption` marks values that are plausible choices, not calibrated estimates.
 
+::: {.callout-note collapse="true"}
+## params.yaml (click to expand)
+
 ```{r}
 #| label: params-yaml
 #| results: asis
 cat("```yaml\n", paste(readLines("params.yaml"), collapse = "\n"), "\n```\n", sep = "")
 ```
+:::
 
 ```{r}
 #| label: params-count
@@ -79,12 +90,12 @@ The file holds `r n_leaf` leaf values in `r n_assump` blocks marked as assumptio
 
 ## Data lineage
 
-Generated data are outputs, not sources of truth: the generator and `params.yaml` are. Content hashes (SHA-256 of the deserialised object) let you confirm you reproduced the same results.
+Generated data are outputs, not sources of truth: the generator and `params.yaml` are. Content hashes (SHA-256 of the deserialised object, serialised with R serialization version 3 so they do not depend on the R release) let you confirm you reproduced the same results.
 
 ```{r}
 #| label: hashes
 files <- list.files("data", pattern = "\\.rds$", full.names = TRUE)
-tibble(File = basename(files), `SHA-256 of content` = map_chr(files, \(f) substr(digest::digest(readRDS(f), algo = "sha256"), 1, 24)), Rows = map_chr(files, \(f) {
+tibble(File = basename(files), `SHA-256 of content` = map_chr(files, \(f) substr(digest::digest(readRDS(f), algo = "sha256", serializeVersion = 3L), 1, 24)), Rows = map_chr(files, \(f) {
   x <- readRDS(f)
   if (is.data.frame(x)) as.character(nrow(x)) else "-"
 })) |> gt::gt()
@@ -115,8 +126,9 @@ td |>
 What the tests cover:
 
 - Triangle construction reconciles **exactly** to the event-level data (counts and amounts, quarterly and annual) and never leaks undiscovered events into the observed region.
-- The generator is deterministic for a seed, rejects invalid parameters, keeps lags non-negative under the control shift and injects shock events exactly.
-- Estimators: the in-house chain-ladder matches the package on a dense triangle, tolerates empty development columns, never throws (errors become `failed`), and sparse triangles are reported as failed or suspect, never as silent zeros.
+- The generator is deterministic for a seed, rejects invalid parameters, keeps lags non-negative under the control shift, injects shock events exactly, and the control-improvement shift reduces time remaining by the stated fraction measured from the later of the shift quarter and the origin (events originating after the shift are not collapsed to lag 0).
+- The negative-binomial scenario has the same mean count as Poisson but larger variance, and the reporting threshold removes only losses below it.
+- Estimators: the in-house chain-ladder matches the package on a dense triangle, tolerates empty development columns, never throws (errors become `failed`), and sparse triangles are reported as failed or suspect, never as silent zeros. The Mack implementation with empty-column handling reproduces `ChainLadder::MackChainLadder` on a dense triangle (IBNR and standard error), runs where the package stops, and a zero bootstrap estimate is flagged suspect. Bornhuetter-Ferguson, Benktander and the benchmark development pattern are checked for coherence (shares in [0, 1], Benktander between BF and chain-ladder, pattern matches simulation).
 - Scoring and control functions are checked against hand-computed values.
 - A replication run is identical on 1 and 2 cores.
 
@@ -145,6 +157,13 @@ This project tests how estimation methods behave on **data we generated**. That 
 7. **Interval method.** Mack and Clark intervals use a lognormal approximation to the total; the bootstrap uses empirical quantiles. Other choices would change coverage numbers somewhat.
 8. **Annual vs. quarterly.** Headline results use annual triangles because quarterly triangles are mostly unusable for the standard methods. A real firm with a long, dense history might do better at finer granularity.
 9. **One firm size.** A $5B stylised firm; no other sizes were tested.
+10. **Poisson frequency, no clustering.** Baseline counts are independent Poisson. Real operational-loss counts are overdispersed, and common-cause failures (for example a pricing feed that fails across many funds) produce batches of errors. The negative-binomial scenario adds overdispersion within an event type, but not clustering across types or across quarters.
+11. **No reporting threshold in the baseline.** Real loss databases only record losses above a collection threshold, often $10k to $20k. The median simulated trade error is about $2.4k, so a real database would hold far fewer trade errors. A $10k threshold is run as a sensitivity scenario.
+12. **Some "method failures" are package limits, not method limits.** `ChainLadder::MackChainLadder()` stops on triangles with empty development columns. Results with empty-column handling (factor 1) are reported next to the package results.
+13. **Frequency x severity donor sparsity.** At long lags few observed events exist, so severities are resampled from the few that do (or from all events when none are nearby, which drops the lag uplift). A variant that pools severities and re-applies an estimated uplift is reported.
+14. **Every control result scales with the severity-growth parameter $e$.** With $e = 0$ incurred loss is the same with and without the control (see [Control Value](controls.qmd#sec-sensitivity)).
+15. **Pure IBNR only.** Loss is booked in full at discovery, so there is no development on events already known (provisions, recoveries, insurance). The terminology here is IBNR, not IBNER.
+16. **The benchmark development pattern is the generator's own.** The Bornhuetter-Ferguson variant with an external pattern shows what an accurate prior pattern buys; with a pattern that is itself wrong it would do worse, and the study does not test that.
 
 ### What would change the conclusions
 
@@ -154,6 +173,8 @@ This project tests how estimation methods behave on **data we generated**. That 
 | Detection lags are stable over time in real data | The control-improvement failure matters less in practice |
 | Loss size does not grow with time undiscovered | Control savings on expected loss largely disappear |
 | Strong calendar-period effects in real data | All development methods would need an explicit calendar term |
+| Losses arrive in clusters from a common failure | Chain-ladder variance is understated; Bornhuetter-Ferguson with a pooled pattern is preferred |
+| Real collection threshold of $10k or more | The trade-error triangle is mostly empty and the standard methods have little to work with |
 
 ### What client data would replace each assumption
 

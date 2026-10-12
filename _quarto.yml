@@ -5,6 +5,7 @@ project:
     - index.qmd
     - data.qmd
     - results.qmd
+    - ml-appendix.qmd
     - controls.qmd
     - reproducibility.qmd
 
@@ -17,6 +18,7 @@ website:
       - {href: results.qmd, text: Results}
       - {href: controls.qmd, text: Control Value}
       - {href: reproducibility.qmd, text: "Reproducibility & Limitations"}
+      - {href: ml-appendix.qmd, text: "ML appendix"}
 
 format:
   html:

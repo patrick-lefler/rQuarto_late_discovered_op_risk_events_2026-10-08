@@ -8,8 +8,13 @@ title: "Synthetic Data"
 library(tidyverse)
 for (f in list.files("R", full.names = TRUE)) source(f)
 params <- load_params()
+res <- load_results()
 base <- apply_scenario(params, "baseline")
 aum <- params$firm$aum_usd
+types <- names(params$event_types)
+set.seed(1)
+lags <- map(types, \(t) tibble(type = type_lab[t], lag = draw_lag(2e5, params$event_types[[t]]$lag))) |> list_rbind()
+lag_stats <- lags |> summarise(median = median(lag), p90 = quantile(lag, .9), beyond_window = mean(lag >= params$horizon$n_lag), .by = type)
 ```
 
 All data are simulated. No internal or client loss data are used, and every parameter is an **assumption** chosen for plausibility, stored in `params.yaml`. The point is to have a known ground truth against which estimation methods can be scored, not to describe a real firm.
@@ -18,9 +23,9 @@ All data are simulated. No internal or client loss data are used, and every para
 
 For each event type and origin quarter:
 
-1. **Count** ~ Poisson($\lambda \times$ exposure), where exposure grows `r fmt_pct(params$exposure$growth_per_quarter, 1)` per quarter.
+1. **Count** ~ Poisson($\lambda \times \text{exposure}$), where exposure grows `r fmt_pct(params$exposure$growth_per_quarter, 1)` per quarter. Counts are independent across quarters and event types, with no overdispersion or clustering (see [Limitations](reproducibility.qmd#sec-limitations)).
 2. **Discovery lag** (quarters): a mixture of a fast component (geometric) and a slow component (discretised lognormal).
-3. **Severity**: lognormal body spliced to a generalised Pareto tail, then scaled by $(1 + e \times \text{lag})$, so events found later are larger.
+3. **Severity**: lognormal body spliced to a generalised Pareto tail, then scaled by $(1 + e \times \text{lag})$, so events found later are larger. The uplift is **linear** in the lag (not compounding). It is a crude stand-in for an unauthorized position that keeps growing while hidden; $e$ is the only mechanism by which a loss can change while undiscovered, so every dollar figure for controls on the [Control Value](controls.qmd) page scales with it.
 4. The loss is **recorded in full at the discovery date**.
 
 The generator keeps the full square, so the true undiscovered loss is always known.
@@ -29,21 +34,22 @@ The generator keeps the full square, so the true undiscovered loss is always kno
 
 ```{r}
 #| label: tbl-params
-types <- names(params$event_types)
 tibble(
   `Event type` = type_lab[types],
   `Events / qtr` = map_dbl(params$event_types, "lambda"),
   `Fast-lag weight` = map_dbl(params$event_types, \(x) x$lag$w_fast),
   `Slow-lag median (qtrs)` = map_dbl(params$event_types, \(x) exp(x$lag$slow_meanlog)),
+  `Median lag (qtrs)` = lag_stats$median[match(type_lab[types], lag_stats$type)],
+  `90th-pct lag (qtrs)` = lag_stats$p90[match(type_lab[types], lag_stats$type)],
   `Median severity` = map_dbl(params$event_types, \(x) exp(x$severity$meanlog)),
   `Tail prob.` = map_dbl(params$event_types, \(x) x$severity$p_tail),
-  `Severity growth / lag qtr` = map_dbl(params$event_types, \(x) x$severity$lag_elasticity)
+  `Severity uplift per lag qtr (linear, e)` = map_dbl(params$event_types, \(x) x$severity$lag_elasticity)
 ) |>
   gt::gt() |>
   gt::fmt_currency(`Median severity`, decimals = 0) |>
   gt::fmt_number(c(`Events / qtr`, `Slow-lag median (qtrs)`), decimals = 1) |>
-  gt::fmt_number(c(`Fast-lag weight`, `Tail prob.`, `Severity growth / lag qtr`), decimals = 2) |>
-  gt::tab_source_note("All values are assumptions (status: assumption in params.yaml).")
+  gt::fmt_number(c(`Fast-lag weight`, `Tail prob.`, `Severity uplift per lag qtr (linear, e)`), decimals = 2) |>
+  gt::tab_source_note("All values are judgement-based assumptions (status: assumption in params.yaml), with no calibration to public loss data. Total expected loss is checked against a 10-15 bps of AUM target in the sanity check below; plausible ranges are given beside each value in params.yaml.")
 ```
 
 ## Discovery-lag distributions
@@ -52,8 +58,6 @@ tibble(
 #| label: fig-lags
 #| fig-cap: "Simulated share of events by discovery lag, per event type (200,000 draws each)."
 #| fig-height: 3.6
-set.seed(1)
-lags <- map(types, \(t) tibble(type = type_lab[t], lag = draw_lag(2e5, params$event_types[[t]]$lag))) |> list_rbind()
 lags |>
   filter(lag <= 24) |>
   count(type, lag) |>
@@ -68,12 +72,9 @@ lags |>
   theme_op()
 ```
 
-```{r}
-#| label: lag-stats
-lag_stats <- lags |> summarise(median = median(lag), p90 = quantile(lag, .9), beyond_window = mean(lag >= params$horizon$n_lag), .by = type)
-```
-
 Median lags are `r paste(lag_stats$type, lag_stats$median, sep = ": ", collapse = ", ")` quarters. The share of events discovered **after** the 40-quarter window is `r paste0(lag_stats$type, " ", fmt_pct(lag_stats$beyond_window, 1), collapse = ", ")`.
+
+Few events fall outside the window, but for unauthorized trading they matter. Those events are scaled by up to $1 + e \times 40 =$ `r sprintf("%.1f", 1 + params$event_types$unauthorized_trading$severity$lag_elasticity * params$horizon$n_lag)` times their initial size, and the denominator is only the loss that is still undiscovered. So the `r fmt_pct(lag_stats$beyond_window[lag_stats$type == "Unauthorized trading"], 1)` of unauthorized-trading events beyond the window carry about `r fmt_pct(tail_share(res$reps, "unauthorized_trading"))` of the true undiscovered unauthorized-trading loss at the evaluation date (baseline, annual granularity, `r res$meta$n_reps` databases). This is why a chain-ladder method confined to the window misses so much of that line.
 
 ## Sanity check: size of the losses
 
@@ -83,21 +84,27 @@ An uncalibrated simulator can easily produce implausible losses, so we check the
 #| label: tbl-scale
 sims <- parallel::mclapply(1:200, \(r) {
   simulate_database(base, rep = r) |>
-    summarise(inc = sum(severity) / (params$horizon$n_origin / 4), n = n() / (params$horizon$n_origin / 4), .by = type)
+    mutate(year = ceiling(origin / 4)) |>
+    summarise(inc = sum(severity), n = n(), .by = c(type, year))
 }, mc.cores = max(1L, parallel::detectCores() - 2L)) |>
   bind_rows(.id = "rep")
+n_years <- params$horizon$n_origin / 4
 by_type <- sims |>
-  summarise(`Mean loss / yr` = mean(inc), `Events / yr` = mean(n), .by = type) |>
+  summarise(`Mean loss / yr` = sum(inc) / (n_distinct(rep) * n_years), `Events / yr` = sum(n) / (n_distinct(rep) * n_years), .by = type) |>
   mutate(Type = type_lab[type], `bps of AUM` = `Mean loss / yr` / aum * 1e4)
-total <- sims |> summarise(inc = sum(inc), .by = rep)
+# Single-year totals (all types), pooled over databases and origin years: the same basis as VaR on the Control Value page.
+year_totals <- sims |> summarise(inc = sum(inc), .by = c(rep, year))
 bind_rows(
   by_type |> select(Type, `Events / yr`, `Mean loss / yr`, `bps of AUM`),
-  tibble(Type = "All types", `Events / yr` = sum(by_type$`Events / yr`), `Mean loss / yr` = mean(total$inc), `bps of AUM` = mean(total$inc) / aum * 1e4)
+  tibble(Type = "All types", `Events / yr` = sum(by_type$`Events / yr`), `Mean loss / yr` = mean(year_totals$inc), `bps of AUM` = mean(year_totals$inc) / aum * 1e4)
 ) |>
+  mutate(Type = factor(Type, levels = c(type_lab, "All types"))) |>
+  arrange(Type) |>
   gt::gt() |>
   gt::fmt_number(c(`Events / yr`, `bps of AUM`), decimals = 1) |>
   gt::fmt_currency(`Mean loss / yr`, decimals = 0) |>
-  gt::tab_source_note(sprintf("Annual total: median %.1f bps, 95th percentile %.1f bps of AUM. Targeted range: 10-15 bps mean; this is an assumption, not a benchmark.", median(total$inc) / aum * 1e4, quantile(total$inc, .95) / aum * 1e4))
+  gt::tab_source_note(sprintf("Single-year total loss, pooled over %d databases x %d origin years: median %.1f bps, 95th percentile %.1f bps of AUM (VaR95 %s). Targeted range: 10-15 bps mean; this is an assumption, not a benchmark.",
+                              n_distinct(sims$rep), n_years, median(year_totals$inc) / aum * 1e4, quantile(year_totals$inc, .95) / aum * 1e4, fmt_usd(quantile(year_totals$inc, .95), 2)))
 ```
 
 ## Scenarios
@@ -105,6 +112,8 @@ bind_rows(
 | Scenario | What changes |
 |---|---|
 | Baseline | Stable detection, proportional development |
-| Heavy-tail shock | Two very large unauthorized-trading losses injected (`r fmt_usd(base$scenarios$heavy_tail_shock$injected_events[[1]]$severity, 0)` and `r fmt_usd(base$scenarios$heavy_tail_shock$injected_events[[2]]$severity, 0)`) |
-| Control improvement | From quarter `r params$scenarios$control_improvement$control_shift$calendar_quarter`, the remaining time to discovery falls by `r fmt_pct(params$scenarios$control_improvement$control_shift$reduction)` |
+| Heavy-tail shock | Two very large unauthorized-trading losses injected: `r fmt_usd(base$scenarios$heavy_tail_shock$injected_events[[1]]$severity, 0)` originating in quarter `r base$scenarios$heavy_tail_shock$injected_events[[1]]$origin` and discovered in quarter `r with(base$scenarios$heavy_tail_shock$injected_events[[1]], origin + lag)` (reported), and `r fmt_usd(base$scenarios$heavy_tail_shock$injected_events[[2]]$severity, 0)` originating in quarter `r base$scenarios$heavy_tail_shock$injected_events[[2]]$origin` and discovered in quarter `r with(base$scenarios$heavy_tail_shock$injected_events[[2]], origin + lag)` (after the evaluation date, so undiscovered) |
+| Control improvement | **Applies to all three event types.** For every event whose discovery quarter $d$ is after the change quarter $c =$ `r params$scenarios$control_improvement$control_shift$calendar_quarter`, the discovery quarter becomes $c + \lfloor (d - c)(1 - r) \rfloor$ with $r =$ `r fmt_pct(params$scenarios$control_improvement$control_shift$reduction)`. This covers both events already pending at $c$ and events that originate afterwards. Severity is drawn before the shift, so only timing changes, not the loss amount. |
 | Exposure growth | Volume growth rises to `r fmt_pct(params$scenarios$exposure_growth$exposure$growth_per_quarter, 0)` per quarter |
+
+The two example **controls** on the [Control Value](controls.qmd) page work differently from the control-improvement scenario above. They shift the lag-distribution parameters (additively, for the event types listed in `params.yaml`) for the whole simulated history before severities are drawn, so a faster-detected event is also smaller through the $(1 + e \times \text{lag})$ term.

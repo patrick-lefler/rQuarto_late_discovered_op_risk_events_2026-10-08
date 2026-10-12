@@ -1,0 +1,106 @@
+---
+title: "Experimental: ML Reserving"
+---
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+for (f in list.files("R", full.names = TRUE)) source(f)
+res <- load_results()
+```
+
+An experimental comparator, kept out of the main [Results](results.qmd) page because it does not feed the conclusions on the [Overview](index.qmd).
+
+```{r}
+#| label: ml-setup
+#| include: false
+ml <- readRDS("data/mlreserve.rds")
+cfg <- load_params()$mlreserve
+```
+
+::: {.callout-warning}
+### Experimental, excluded from headline results
+`mlReserve()` comes from a personal fork of the ChainLadder package (`thierrymoudiki/ChainLadder`, pinned to commit `r substr(ml$commit, 1, 8)`, package version `r ml$fork_version`), not from CRAN. Its published evidence is a blog post using simulated insurance triangles. It was installed into an isolated library so the CRAN ChainLadder used on every other page is unaffected. Nothing on this page feeds the executive summary.
+:::
+
+### What it does
+
+`mlReserve()` fits a machine-learning regression (here a random forest from `ranger` or a support vector machine from `e1071`) to the observed cells of a triangle, using origin and development period as features, and predicts the unobserved cells. It is a different idea from chain-ladder's multiplicative development factors.
+
+### The test
+
+Same simulated databases as the baseline validation (replications 1-`r cfg$n_reps`), annual dollar triangles, scored on the undiscovered loss inside the window. Four configurations are run and **all are reported**; none was chosen using the true values. The first is the setting used in the blog post. Point estimates only (no bootstrap intervals).
+
+```{r}
+#| label: tbl-ml-configs
+tibble(Configuration = names(cfg$configs),
+       Learner = map_chr(cfg$configs, "learner"), Features = map_chr(cfg$configs, "features"), Transform = map_chr(cfg$configs, "transform")) |>
+  gt::gt()
+```
+
+```{r}
+#| label: ml-scores
+ref <- res$reps |>
+  filter(scenario == "baseline", granularity == "annual", kind == "amount", rep <= cfg$n_reps,
+         method %in% c("mack", "boot", "freq_x_sev")) |>
+  transmute(type, config = method_lab[method], est = if_else(status == "ok", est, NA_real_), truth = truth_window, rep)
+mlr <- ml$results |> transmute(type, config = paste("mlReserve:", config), est = if_else(status == "ok", est, NA_real_), truth, rep)
+cmp <- bind_rows(ref, mlr)
+sc_ml <- cmp |>
+  summarise(
+    usable = sum(is.finite(est)),
+    rel_bias = sum(est - truth, na.rm = TRUE) / sum(truth[is.finite(est)]),
+    median_ratio = median(est / truth, na.rm = TRUE),
+    .by = c(type, config)
+  ) |>
+  mutate(type = factor(type_lab[type], levels = type_lab)) |>
+  arrange(type, config)
+```
+
+```{r}
+#| label: tbl-ml
+sc_ml |>
+  gt::gt(groupname_col = "type") |>
+  gt::fmt_percent(rel_bias, decimals = 0) |>
+  gt::fmt_number(median_ratio, decimals = 2) |>
+  gt::cols_label(config = "Method", usable = "Usable fits", rel_bias = "Relative bias", median_ratio = "Median estimate / truth") |>
+  gt::sub_missing(missing_text = "-")
+```
+
+```{r}
+#| label: fig-ml
+#| fig-height: 5
+cmp |>
+  filter(is.finite(est), truth > 0) |>
+  mutate(ratio = est / truth, type = factor(type_lab[type], levels = type_lab),
+         ml = str_detect(config, "^mlReserve")) |>
+  ggplot(aes(ratio, fct_rev(config), fill = ml)) +
+  geom_vline(xintercept = 1, colour = "grey40") +
+  geom_boxplot(outlier.size = 0.6, linewidth = 0.3) +
+  facet_wrap(~type, nrow = 1) +
+  scale_x_log10(labels = \(x) paste0(x, "x")) +
+  scale_fill_manual(values = c(`TRUE` = "#E69F00", `FALSE` = "#0072B2"), guide = "none") +
+  labs(x = "Estimate / truth (log scale; 1x = exact)", y = NULL, title = "mlReserve vs. classical methods on the same databases") +
+  theme_op()
+```
+
+```{r}
+#| label: ml-text
+mlsc <- sc_ml |> filter(str_detect(config, "^mlReserve"))
+closest <- \(t) mlsc |> filter(type == t) |> slice_min(abs(log(median_ratio)), n = 1)
+worst <- \(t) mlsc |> filter(type == t) |> slice_max(abs(log(median_ratio)), n = 1)
+mack <- \(t) sc_ml |> filter(type == t, config == "Mack (package)")
+nav_c <- closest("NAV errors"); trade_c <- closest("Trade errors"); un_c <- closest("Unauthorized trading")
+asinh_trade <- sc_ml |> filter(type == "Trade errors", config == "mlReserve: rf_asinh_numeric")
+```
+
+#### Reading the result
+
+- **Every `mlReserve` configuration overestimates on the two event types where classical methods work.** For NAV errors the closest configuration (`r nav_c$config`) has a median estimate/truth ratio of `r round(nav_c$median_ratio, 1)`, against `r round(mack("NAV errors")$median_ratio, 2)` for Mack. For trade errors the closest (`r trade_c$config`) is `r round(trade_c$median_ratio, 0)`x the truth, against `r round(mack("Trade errors")$median_ratio, 2)` for Mack.
+- **Why:** on a single triangle, the learner extrapolates an upward trend across origin years into cells that, in this simulator, are nearly fully developed. With 10 origin years there are only 55 training cells and tree/kernel learners have no development-factor structure to anchor them.
+- **The blog's `asinh` transform, applied to dollar values,** gives a median ratio of `r round(asinh_trade$median_ratio, 0)` for trade errors, worse than the same learner with no transform in the cases we ran; it may be calibrated for much smaller numeric scales, and we did not test rescaling the data first.
+- **Unauthorized trading:** the closest configuration (`r un_c$config`, median ratio `r round(un_c$median_ratio, 1)`) is not a useful comparison either way, since the truth is small and the estimates are highly dispersed.
+- We report the configurations after the fact for transparency; none was selected using the truth, and "closest" above describes this experiment, not a recommendation.
+
+Taken together, this is a limited test, on one data-generating process, with no tuning, of an unreleased fork. It gives no support for using `mlReserve` here, and it does not show that the approach cannot work with more data or tuning.

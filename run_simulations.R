@@ -12,11 +12,17 @@ t_rep <- system.time(reps <- run_replications(params, n_reps, n_cores))
 t_ctl <- system.time({
   ctl <- run_control_study(params, n_reps, n_cores)
   be <- run_breakeven(params, n_reps = n_reps, n_cores = n_cores)
+  sens <- run_control_sensitivity(params, n_reps = n_reps, n_cores = n_cores)
+  tail_ci <- tail_bootstrap(ctl)
+  tail_diff <- tail_reduction_bootstrap(ctl)
 })
 
 saveRDS(reps, "data/replications.rds")
 saveRDS(ctl, "data/control_study.rds")
 saveRDS(be, "data/control_breakeven.rds")
+saveRDS(sens, "data/control_sensitivity.rds")
+saveRDS(tail_ci, "data/control_tail_ci.rds")
+saveRDS(tail_diff, "data/control_tail_diff.rds")
 saveRDS(list(
   n_reps = n_reps, n_cores = n_cores, replication_seconds = t_rep[["elapsed"]], control_seconds = t_ctl[["elapsed"]],
   params_md5 = unname(tools::md5sum("params.yaml")), finished = format(Sys.time(), tz = "UTC", usetz = TRUE)

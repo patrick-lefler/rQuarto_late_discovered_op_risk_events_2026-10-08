@@ -173,6 +173,10 @@ window.Quarto = {
     <a class="nav-link" href="./reproducibility.html"> 
 <span class="menu-text">Reproducibility &amp; Limitations</span></a>
   </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./ml-appendix.html"> 
+<span class="menu-text">ML appendix</span></a>
+  </li>  
 </ul>
           </div> <!-- /navcollapse -->
             <div class="quarto-navbar-tools">
@@ -224,9 +228,9 @@ window.Quarto = {
 <h2 class="anchored" data-anchor-id="generator-design">Generator design</h2>
 <p>For each event type and origin quarter:</p>
 <ol type="1">
-<li><strong>Count</strong> ~ Poisson(<span class="math inline">\(\lambda \times\)</span> exposure), where exposure grows 1.0% per quarter.</li>
+<li><strong>Count</strong> ~ Poisson(<span class="math inline">\(\lambda \times \text{exposure}\)</span>), where exposure grows 1.0% per quarter. Counts are independent across quarters and event types, with no overdispersion or clustering (see <a href="./reproducibility.html#sec-limitations">Limitations</a>).</li>
 <li><strong>Discovery lag</strong> (quarters): a mixture of a fast component (geometric) and a slow component (discretised lognormal).</li>
-<li><strong>Severity</strong>: lognormal body spliced to a generalised Pareto tail, then scaled by <span class="math inline">\((1 + e \times \text{lag})\)</span>, so events found later are larger.</li>
+<li><strong>Severity</strong>: lognormal body spliced to a generalised Pareto tail, then scaled by <span class="math inline">\((1 + e \times \text{lag})\)</span>, so events found later are larger. The uplift is <strong>linear</strong> in the lag (not compounding). It is a crude stand-in for an unauthorized position that keeps growing while hidden; <span class="math inline">\(e\)</span> is the only mechanism by which a loss can change while undiscovered, so every dollar figure for controls on the <a href="./controls.html">Control Value</a> page scales with it.</li>
 <li>The loss is <strong>recorded in full at the discovery date</strong>.</li>
 </ol>
 <p>The generator keeps the full square, so the true undiscovered loss is always known.</p>
@@ -236,21 +240,22 @@ window.Quarto = {
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>types <span class="ot">&lt;-</span> <span class="fu">names</span>(params<span class="sc">$</span>event_types)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">tibble</span>(</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">Event type</span><span class="st">`</span> <span class="ot">=</span> type_lab[types],</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">Events / qtr</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">map_dbl</span>(params<span class="sc">$</span>event_types, <span class="st">"lambda"</span>),</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">Fast-lag weight</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">map_dbl</span>(params<span class="sc">$</span>event_types, \(x) x<span class="sc">$</span>lag<span class="sc">$</span>w_fast),</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">Slow-lag median (qtrs)</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">map_dbl</span>(params<span class="sc">$</span>event_types, \(x) <span class="fu">exp</span>(x<span class="sc">$</span>lag<span class="sc">$</span>slow_meanlog)),</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">Median severity</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">map_dbl</span>(params<span class="sc">$</span>event_types, \(x) <span class="fu">exp</span>(x<span class="sc">$</span>severity<span class="sc">$</span>meanlog)),</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">Tail prob.</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">map_dbl</span>(params<span class="sc">$</span>event_types, \(x) x<span class="sc">$</span>severity<span class="sc">$</span>p_tail),</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">Severity growth / lag qtr</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">map_dbl</span>(params<span class="sc">$</span>event_types, \(x) x<span class="sc">$</span>severity<span class="sc">$</span>lag_elasticity)</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  gt<span class="sc">::</span><span class="fu">gt</span>() <span class="sc">|&gt;</span></span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  gt<span class="sc">::</span><span class="fu">fmt_currency</span>(<span class="st">`</span><span class="at">Median severity</span><span class="st">`</span>, <span class="at">decimals =</span> <span class="dv">0</span>) <span class="sc">|&gt;</span></span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  gt<span class="sc">::</span><span class="fu">fmt_number</span>(<span class="fu">c</span>(<span class="st">`</span><span class="at">Events / qtr</span><span class="st">`</span>, <span class="st">`</span><span class="at">Slow-lag median (qtrs)</span><span class="st">`</span>), <span class="at">decimals =</span> <span class="dv">1</span>) <span class="sc">|&gt;</span></span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>  gt<span class="sc">::</span><span class="fu">fmt_number</span>(<span class="fu">c</span>(<span class="st">`</span><span class="at">Fast-lag weight</span><span class="st">`</span>, <span class="st">`</span><span class="at">Tail prob.</span><span class="st">`</span>, <span class="st">`</span><span class="at">Severity growth / lag qtr</span><span class="st">`</span>), <span class="at">decimals =</span> <span class="dv">2</span>) <span class="sc">|&gt;</span></span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>  gt<span class="sc">::</span><span class="fu">tab_source_note</span>(<span class="st">"All values are assumptions (status: assumption in params.yaml)."</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tibble</span>(</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">Event type</span><span class="st">`</span> <span class="ot">=</span> type_lab[types],</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">Events / qtr</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">map_dbl</span>(params<span class="sc">$</span>event_types, <span class="st">"lambda"</span>),</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">Fast-lag weight</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">map_dbl</span>(params<span class="sc">$</span>event_types, \(x) x<span class="sc">$</span>lag<span class="sc">$</span>w_fast),</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">Slow-lag median (qtrs)</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">map_dbl</span>(params<span class="sc">$</span>event_types, \(x) <span class="fu">exp</span>(x<span class="sc">$</span>lag<span class="sc">$</span>slow_meanlog)),</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">Median lag (qtrs)</span><span class="st">`</span> <span class="ot">=</span> lag_stats<span class="sc">$</span>median[<span class="fu">match</span>(type_lab[types], lag_stats<span class="sc">$</span>type)],</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">90th-pct lag (qtrs)</span><span class="st">`</span> <span class="ot">=</span> lag_stats<span class="sc">$</span>p90[<span class="fu">match</span>(type_lab[types], lag_stats<span class="sc">$</span>type)],</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">Median severity</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">map_dbl</span>(params<span class="sc">$</span>event_types, \(x) <span class="fu">exp</span>(x<span class="sc">$</span>severity<span class="sc">$</span>meanlog)),</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">Tail prob.</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">map_dbl</span>(params<span class="sc">$</span>event_types, \(x) x<span class="sc">$</span>severity<span class="sc">$</span>p_tail),</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">Severity uplift per lag qtr (linear, e)</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">map_dbl</span>(params<span class="sc">$</span>event_types, \(x) x<span class="sc">$</span>severity<span class="sc">$</span>lag_elasticity)</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  gt<span class="sc">::</span><span class="fu">gt</span>() <span class="sc">|&gt;</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  gt<span class="sc">::</span><span class="fu">fmt_currency</span>(<span class="st">`</span><span class="at">Median severity</span><span class="st">`</span>, <span class="at">decimals =</span> <span class="dv">0</span>) <span class="sc">|&gt;</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>  gt<span class="sc">::</span><span class="fu">fmt_number</span>(<span class="fu">c</span>(<span class="st">`</span><span class="at">Events / qtr</span><span class="st">`</span>, <span class="st">`</span><span class="at">Slow-lag median (qtrs)</span><span class="st">`</span>), <span class="at">decimals =</span> <span class="dv">1</span>) <span class="sc">|&gt;</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>  gt<span class="sc">::</span><span class="fu">fmt_number</span>(<span class="fu">c</span>(<span class="st">`</span><span class="at">Fast-lag weight</span><span class="st">`</span>, <span class="st">`</span><span class="at">Tail prob.</span><span class="st">`</span>, <span class="st">`</span><span class="at">Severity uplift per lag qtr (linear, e)</span><span class="st">`</span>), <span class="at">decimals =</span> <span class="dv">2</span>) <span class="sc">|&gt;</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>  gt<span class="sc">::</span><span class="fu">tab_source_note</span>(<span class="st">"All values are judgement-based assumptions (status: assumption in params.yaml), with no calibration to public loss data. Total expected loss is checked against a 10-15 bps of AUM target in the sanity check below; plausible ranges are given beside each value in params.yaml."</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div id="tbl-params" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
@@ -258,583 +263,6 @@ window.Quarto = {
 Table&nbsp;1
 </figcaption>
 <div aria-describedby="tbl-params-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div class="cell-output-display">
-<div id="babyrhngih" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#babyrhngih table {
-  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-#babyrhngih thead, #babyrhngih tbody, #babyrhngih tfoot, #babyrhngih tr, #babyrhngih td, #babyrhngih th {
-  border-style: none;
-}
-
-#babyrhngih p {
-  margin: 0;
-  padding: 0;
-}
-
-#babyrhngih .gt_table {
-  display: table;
-  border-collapse: collapse;
-  line-height: normal;
-  margin-left: auto;
-  margin-right: auto;
-  color: #333333;
-  font-size: 16px;
-  font-weight: normal;
-  font-style: normal;
-  background-color: #FFFFFF;
-  width: auto;
-  border-top-style: solid;
-  border-top-width: 2px;
-  border-top-color: #A8A8A8;
-  border-right-style: none;
-  border-right-width: 2px;
-  border-right-color: #D3D3D3;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #A8A8A8;
-  border-left-style: none;
-  border-left-width: 2px;
-  border-left-color: #D3D3D3;
-}
-
-#babyrhngih .gt_caption {
-  padding-top: 4px;
-  padding-bottom: 4px;
-}
-
-#babyrhngih .gt_title {
-  color: #333333;
-  font-size: 125%;
-  font-weight: initial;
-  padding-top: 4px;
-  padding-bottom: 4px;
-  padding-left: 5px;
-  padding-right: 5px;
-  border-bottom-color: #FFFFFF;
-  border-bottom-width: 0;
-}
-
-#babyrhngih .gt_subtitle {
-  color: #333333;
-  font-size: 85%;
-  font-weight: initial;
-  padding-top: 3px;
-  padding-bottom: 5px;
-  padding-left: 5px;
-  padding-right: 5px;
-  border-top-color: #FFFFFF;
-  border-top-width: 0;
-}
-
-#babyrhngih .gt_heading {
-  background-color: #FFFFFF;
-  text-align: center;
-  border-bottom-color: #FFFFFF;
-  border-left-style: none;
-  border-left-width: 1px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 1px;
-  border-right-color: #D3D3D3;
-}
-
-#babyrhngih .gt_bottom_border {
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-}
-
-#babyrhngih .gt_col_headings {
-  border-top-style: solid;
-  border-top-width: 2px;
-  border-top-color: #D3D3D3;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  border-left-style: none;
-  border-left-width: 1px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 1px;
-  border-right-color: #D3D3D3;
-}
-
-#babyrhngih .gt_col_heading {
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: normal;
-  text-transform: inherit;
-  border-left-style: none;
-  border-left-width: 1px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 1px;
-  border-right-color: #D3D3D3;
-  vertical-align: bottom;
-  padding-top: 5px;
-  padding-bottom: 6px;
-  padding-left: 5px;
-  padding-right: 5px;
-  overflow-x: hidden;
-}
-
-#babyrhngih .gt_column_spanner_outer {
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: normal;
-  text-transform: inherit;
-  padding-top: 0;
-  padding-bottom: 0;
-  padding-left: 4px;
-  padding-right: 4px;
-}
-
-#babyrhngih .gt_column_spanner_outer:first-child {
-  padding-left: 0;
-}
-
-#babyrhngih .gt_column_spanner_outer:last-child {
-  padding-right: 0;
-}
-
-#babyrhngih .gt_column_spanner {
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  vertical-align: bottom;
-  padding-top: 5px;
-  padding-bottom: 5px;
-  overflow-x: hidden;
-  display: inline-block;
-  width: 100%;
-}
-
-#babyrhngih .gt_spanner_row {
-  border-bottom-style: hidden;
-}
-
-#babyrhngih .gt_group_heading {
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: initial;
-  text-transform: inherit;
-  border-top-style: solid;
-  border-top-width: 2px;
-  border-top-color: #D3D3D3;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  border-left-style: none;
-  border-left-width: 1px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 1px;
-  border-right-color: #D3D3D3;
-  vertical-align: middle;
-  text-align: left;
-}
-
-#babyrhngih .gt_empty_group_heading {
-  padding: 0.5px;
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: initial;
-  border-top-style: solid;
-  border-top-width: 2px;
-  border-top-color: #D3D3D3;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  vertical-align: middle;
-}
-
-#babyrhngih .gt_from_md > :first-child {
-  margin-top: 0;
-}
-
-#babyrhngih .gt_from_md > :last-child {
-  margin-bottom: 0;
-}
-
-#babyrhngih .gt_row {
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-  margin: 10px;
-  border-top-style: solid;
-  border-top-width: 1px;
-  border-top-color: #D3D3D3;
-  border-left-style: none;
-  border-left-width: 1px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 1px;
-  border-right-color: #D3D3D3;
-  vertical-align: middle;
-  overflow-x: hidden;
-}
-
-#babyrhngih .gt_stub {
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: initial;
-  text-transform: inherit;
-  border-right-style: solid;
-  border-right-width: 2px;
-  border-right-color: #D3D3D3;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-#babyrhngih .gt_stub_row_group {
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: initial;
-  text-transform: inherit;
-  border-right-style: solid;
-  border-right-width: 2px;
-  border-right-color: #D3D3D3;
-  padding-left: 5px;
-  padding-right: 5px;
-  vertical-align: top;
-}
-
-#babyrhngih .gt_row_group_first td {
-  border-top-width: 2px;
-}
-
-#babyrhngih .gt_row_group_first th {
-  border-top-width: 2px;
-}
-
-#babyrhngih .gt_summary_row {
-  color: #333333;
-  background-color: #FFFFFF;
-  text-transform: inherit;
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-#babyrhngih .gt_first_summary_row {
-  border-top-style: solid;
-  border-top-color: #D3D3D3;
-}
-
-#babyrhngih .gt_first_summary_row.thick {
-  border-top-width: 2px;
-}
-
-#babyrhngih .gt_last_summary_row {
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-}
-
-#babyrhngih .gt_grand_summary_row {
-  color: #333333;
-  background-color: #FFFFFF;
-  text-transform: inherit;
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-#babyrhngih .gt_first_grand_summary_row {
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-  border-top-style: double;
-  border-top-width: 6px;
-  border-top-color: #D3D3D3;
-}
-
-#babyrhngih .gt_last_grand_summary_row_top {
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-  border-bottom-style: double;
-  border-bottom-width: 6px;
-  border-bottom-color: #D3D3D3;
-}
-
-#babyrhngih .gt_striped {
-  background-color: rgba(128, 128, 128, 0.05);
-}
-
-#babyrhngih .gt_table_body {
-  border-top-style: solid;
-  border-top-width: 2px;
-  border-top-color: #D3D3D3;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-}
-
-#babyrhngih .gt_footnotes {
-  color: #333333;
-  background-color: #FFFFFF;
-  border-bottom-style: none;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  border-left-style: none;
-  border-left-width: 2px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 2px;
-  border-right-color: #D3D3D3;
-}
-
-#babyrhngih .gt_footnote {
-  margin: 0px;
-  font-size: 90%;
-  padding-top: 4px;
-  padding-bottom: 4px;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-#babyrhngih .gt_sourcenotes {
-  color: #333333;
-  background-color: #FFFFFF;
-  border-bottom-style: none;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  border-left-style: none;
-  border-left-width: 2px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 2px;
-  border-right-color: #D3D3D3;
-}
-
-#babyrhngih .gt_sourcenote {
-  font-size: 90%;
-  padding-top: 4px;
-  padding-bottom: 4px;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-#babyrhngih .gt_left {
-  text-align: left;
-}
-
-#babyrhngih .gt_center {
-  text-align: center;
-}
-
-#babyrhngih .gt_right {
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
-
-#babyrhngih .gt_font_normal {
-  font-weight: normal;
-}
-
-#babyrhngih .gt_font_bold {
-  font-weight: bold;
-}
-
-#babyrhngih .gt_font_italic {
-  font-style: italic;
-}
-
-#babyrhngih .gt_super {
-  font-size: 65%;
-}
-
-#babyrhngih .gt_footnote_marks {
-  font-size: 75%;
-  vertical-align: 0.4em;
-  position: initial;
-}
-
-#babyrhngih .gt_asterisk {
-  font-size: 100%;
-  vertical-align: 0;
-}
-
-#babyrhngih .gt_indent_1 {
-  text-indent: 5px;
-}
-
-#babyrhngih .gt_indent_2 {
-  text-indent: 10px;
-}
-
-#babyrhngih .gt_indent_3 {
-  text-indent: 15px;
-}
-
-#babyrhngih .gt_indent_4 {
-  text-indent: 20px;
-}
-
-#babyrhngih .gt_indent_5 {
-  text-indent: 25px;
-}
-
-#babyrhngih .katex-display {
-  display: inline-flex !important;
-  margin-bottom: 0.75em !important;
-}
-
-#babyrhngih div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
-  height: 0px !important;
-}
-</style>
-
-<table class="gt_table do-not-create-environment caption-top table table-sm table-striped small" data-quarto-bootstrap="false">
-<thead>
-<tr class="gt_col_headings header">
-<th id="Event-type" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col">Event type</th>
-<th id="Events-/-qtr" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Events / qtr</th>
-<th id="Fast-lag-weight" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Fast-lag weight</th>
-<th id="Slow-lag-median-(qtrs)" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Slow-lag median (qtrs)</th>
-<th id="Median-severity" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Median severity</th>
-<th id="Tail-prob." class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Tail prob.</th>
-<th id="Severity-growth-/-lag-qtr" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Severity growth / lag qtr</th>
-</tr>
-</thead>
-<tbody class="gt_table_body">
-<tr class="odd">
-<td class="gt_row gt_left" headers="Event type">Trade errors</td>
-<td class="gt_row gt_right" headers="Events / qtr">60.0</td>
-<td class="gt_row gt_right" headers="Fast-lag weight">0.85</td>
-<td class="gt_row gt_right" headers="Slow-lag median (qtrs)">1.6</td>
-<td class="gt_row gt_right" headers="Median severity">$2,441</td>
-<td class="gt_row gt_right" headers="Tail prob.">0.03</td>
-<td class="gt_row gt_right" headers="Severity growth / lag qtr">0.02</td>
-</tr>
-<tr class="even">
-<td class="gt_row gt_left" headers="Event type">NAV errors</td>
-<td class="gt_row gt_right" headers="Events / qtr">6.0</td>
-<td class="gt_row gt_right" headers="Fast-lag weight">0.50</td>
-<td class="gt_row gt_right" headers="Slow-lag median (qtrs)">4.5</td>
-<td class="gt_row gt_right" headers="Median severity">$29,733</td>
-<td class="gt_row gt_right" headers="Tail prob.">0.05</td>
-<td class="gt_row gt_right" headers="Severity growth / lag qtr">0.05</td>
-</tr>
-<tr class="odd">
-<td class="gt_row gt_left" headers="Event type">Unauthorized trading</td>
-<td class="gt_row gt_right" headers="Events / qtr">0.3</td>
-<td class="gt_row gt_right" headers="Fast-lag weight">0.10</td>
-<td class="gt_row gt_right" headers="Slow-lag median (qtrs)">7.4</td>
-<td class="gt_row gt_right" headers="Median severity">$242,802</td>
-<td class="gt_row gt_right" headers="Tail prob.">0.08</td>
-<td class="gt_row gt_right" headers="Severity growth / lag qtr">0.08</td>
-</tr>
-</tbody><tfoot>
-<tr class="gt_sourcenotes odd">
-<td colspan="7" class="gt_sourcenote">All values are assumptions (status: assumption in params.yaml).</td>
-</tr>
-</tfoot>
-
-</table>
-
-</div>
-</div>
-</div>
-</figure>
-</div>
-</div>
-</section>
-<section id="discovery-lag-distributions" class="level2">
-<h2 class="anchored" data-anchor-id="discovery-lag-distributions">Discovery-lag distributions</h2>
-<div class="cell">
-<details class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>lags <span class="ot">&lt;-</span> <span class="fu">map</span>(types, \(t) <span class="fu">tibble</span>(<span class="at">type =</span> type_lab[t], <span class="at">lag =</span> <span class="fu">draw_lag</span>(<span class="fl">2e5</span>, params<span class="sc">$</span>event_types[[t]]<span class="sc">$</span>lag))) <span class="sc">|&gt;</span> <span class="fu">list_rbind</span>()</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>lags <span class="sc">|&gt;</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(lag <span class="sc">&lt;=</span> <span class="dv">24</span>) <span class="sc">|&gt;</span></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(type, lag) <span class="sc">|&gt;</span></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">share =</span> n <span class="sc">/</span> <span class="fl">2e5</span>, <span class="at">.by =</span> type) <span class="sc">|&gt;</span></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">type =</span> <span class="fu">factor</span>(type, <span class="at">levels =</span> type_lab)) <span class="sc">|&gt;</span></span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(lag, share, <span class="at">fill =</span> type)) <span class="sc">+</span></span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">width =</span> <span class="fl">0.85</span>) <span class="sc">+</span></span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>type, <span class="at">nrow =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> type_col, <span class="at">guide =</span> <span class="st">"none"</span>) <span class="sc">+</span></span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span><span class="fu">label_percent</span>()) <span class="sc">+</span></span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Discovery lag (quarters, truncated at 24)"</span>, <span class="at">y =</span> <span class="st">"Share of events"</span>, <span class="at">title =</span> <span class="st">"Detection speed differs sharply by event type"</span>) <span class="sc">+</span></span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_op</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output-display">
-<div id="fig-lags" class="quarto-float quarto-figure quarto-figure-center anchored">
-<figure class="quarto-float quarto-float-fig figure">
-<div aria-describedby="fig-lags-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="data_files/figure-html/fig-lags-1.png" class="img-fluid figure-img" width="672">
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-lags-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;1: Simulated share of events by discovery lag, per event type (200,000 draws each).
-</figcaption>
-</figure>
-</div>
-</div>
-</div>
-<div class="cell">
-<details class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>lag_stats <span class="ot">&lt;-</span> lags <span class="sc">|&gt;</span> <span class="fu">summarise</span>(<span class="at">median =</span> <span class="fu">median</span>(lag), <span class="at">p90 =</span> <span class="fu">quantile</span>(lag, .<span class="dv">9</span>), <span class="at">beyond_window =</span> <span class="fu">mean</span>(lag <span class="sc">&gt;=</span> params<span class="sc">$</span>horizon<span class="sc">$</span>n_lag), <span class="at">.by =</span> type)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-</div>
-<p>Median lags are Trade errors: 0, NAV errors: 2, Unauthorized trading: 6 quarters. The share of events discovered <strong>after</strong> the 40-quarter window is Trade errors 0.0%, NAV errors 0.1%, Unauthorized trading 2.7%.</p>
-</section>
-<section id="sanity-check-size-of-the-losses" class="level2">
-<h2 class="anchored" data-anchor-id="sanity-check-size-of-the-losses">Sanity check: size of the losses</h2>
-<p>An uncalibrated simulator can easily produce implausible losses, so we check the scale against an assumed AUM of $5.0B. Expected annual incurred loss (all events, discovered or not) over 200 simulated databases:</p>
-<div class="cell">
-<details class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>sims <span class="ot">&lt;-</span> parallel<span class="sc">::</span><span class="fu">mclapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">200</span>, \(r) {</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">simulate_database</span>(base, <span class="at">rep =</span> r) <span class="sc">|&gt;</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarise</span>(<span class="at">inc =</span> <span class="fu">sum</span>(severity) <span class="sc">/</span> (params<span class="sc">$</span>horizon<span class="sc">$</span>n_origin <span class="sc">/</span> <span class="dv">4</span>), <span class="at">n =</span> <span class="fu">n</span>() <span class="sc">/</span> (params<span class="sc">$</span>horizon<span class="sc">$</span>n_origin <span class="sc">/</span> <span class="dv">4</span>), <span class="at">.by =</span> type)</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>}, <span class="at">mc.cores =</span> <span class="fu">max</span>(<span class="dv">1</span>L, parallel<span class="sc">::</span><span class="fu">detectCores</span>() <span class="sc">-</span> <span class="dv">2</span>L)) <span class="sc">|&gt;</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bind_rows</span>(<span class="at">.id =</span> <span class="st">"rep"</span>)</span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>by_type <span class="ot">&lt;-</span> sims <span class="sc">|&gt;</span></span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="st">`</span><span class="at">Mean loss / yr</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">mean</span>(inc), <span class="st">`</span><span class="at">Events / yr</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">mean</span>(n), <span class="at">.by =</span> type) <span class="sc">|&gt;</span></span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Type =</span> type_lab[type], <span class="st">`</span><span class="at">bps of AUM</span><span class="st">`</span> <span class="ot">=</span> <span class="st">`</span><span class="at">Mean loss / yr</span><span class="st">`</span> <span class="sc">/</span> aum <span class="sc">*</span> <span class="fl">1e4</span>)</span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>total <span class="ot">&lt;-</span> sims <span class="sc">|&gt;</span> <span class="fu">summarise</span>(<span class="at">inc =</span> <span class="fu">sum</span>(inc), <span class="at">.by =</span> rep)</span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="fu">bind_rows</span>(</span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>  by_type <span class="sc">|&gt;</span> <span class="fu">select</span>(Type, <span class="st">`</span><span class="at">Events / yr</span><span class="st">`</span>, <span class="st">`</span><span class="at">Mean loss / yr</span><span class="st">`</span>, <span class="st">`</span><span class="at">bps of AUM</span><span class="st">`</span>),</span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tibble</span>(<span class="at">Type =</span> <span class="st">"All types"</span>, <span class="st">`</span><span class="at">Events / yr</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">sum</span>(by_type<span class="sc">$</span><span class="st">`</span><span class="at">Events / yr</span><span class="st">`</span>), <span class="st">`</span><span class="at">Mean loss / yr</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">mean</span>(total<span class="sc">$</span>inc), <span class="st">`</span><span class="at">bps of AUM</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">mean</span>(total<span class="sc">$</span>inc) <span class="sc">/</span> aum <span class="sc">*</span> <span class="fl">1e4</span>)</span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>  gt<span class="sc">::</span><span class="fu">gt</span>() <span class="sc">|&gt;</span></span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>  gt<span class="sc">::</span><span class="fu">fmt_number</span>(<span class="fu">c</span>(<span class="st">`</span><span class="at">Events / yr</span><span class="st">`</span>, <span class="st">`</span><span class="at">bps of AUM</span><span class="st">`</span>), <span class="at">decimals =</span> <span class="dv">1</span>) <span class="sc">|&gt;</span></span>
-<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>  gt<span class="sc">::</span><span class="fu">fmt_currency</span>(<span class="st">`</span><span class="at">Mean loss / yr</span><span class="st">`</span>, <span class="at">decimals =</span> <span class="dv">0</span>) <span class="sc">|&gt;</span></span>
-<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>  gt<span class="sc">::</span><span class="fu">tab_source_note</span>(<span class="fu">sprintf</span>(<span class="st">"Annual total: median %.1f bps, 95th percentile %.1f bps of AUM. Targeted range: 10-15 bps mean; this is an assumption, not a benchmark."</span>, <span class="fu">median</span>(total<span class="sc">$</span>inc) <span class="sc">/</span> aum <span class="sc">*</span> <span class="fl">1e4</span>, <span class="fu">quantile</span>(total<span class="sc">$</span>inc, .<span class="dv">95</span>) <span class="sc">/</span> aum <span class="sc">*</span> <span class="fl">1e4</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div id="tbl-scale" class="cell quarto-float quarto-figure quarto-figure-center anchored">
-<figure class="quarto-float quarto-float-tbl figure">
-<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl quarto-uncaptioned" id="tbl-scale-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;2
-</figcaption>
-<div aria-describedby="tbl-scale-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output-display">
 <div id="emkedxhsvh" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
 <style>#emkedxhsvh table {
@@ -1289,7 +717,591 @@ Table&nbsp;2
 <table class="gt_table do-not-create-environment caption-top table table-sm table-striped small" data-quarto-bootstrap="false">
 <thead>
 <tr class="gt_col_headings header">
-<th id="Type" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col">Type</th>
+<th id="Event-type" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col">Event type</th>
+<th id="Events-/-qtr" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Events / qtr</th>
+<th id="Fast-lag-weight" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Fast-lag weight</th>
+<th id="Slow-lag-median-(qtrs)" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Slow-lag median (qtrs)</th>
+<th id="Median-lag-(qtrs)" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Median lag (qtrs)</th>
+<th id="a90th-pct-lag-(qtrs)" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">90th-pct lag (qtrs)</th>
+<th id="Median-severity" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Median severity</th>
+<th id="Tail-prob." class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Tail prob.</th>
+<th id="Severity-uplift-per-lag-qtr-(linear,-e)" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Severity uplift per lag qtr (linear, e)</th>
+</tr>
+</thead>
+<tbody class="gt_table_body">
+<tr class="odd">
+<td class="gt_row gt_left" headers="Event type">Trade errors</td>
+<td class="gt_row gt_right" headers="Events / qtr">60.0</td>
+<td class="gt_row gt_right" headers="Fast-lag weight">0.85</td>
+<td class="gt_row gt_right" headers="Slow-lag median (qtrs)">1.6</td>
+<td class="gt_row gt_right" headers="Median lag (qtrs)">0</td>
+<td class="gt_row gt_right" headers="90th-pct lag (qtrs)">1</td>
+<td class="gt_row gt_right" headers="Median severity">$2,441</td>
+<td class="gt_row gt_right" headers="Tail prob.">0.03</td>
+<td class="gt_row gt_right" headers="Severity uplift per lag qtr (linear, e)">0.02</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="Event type">NAV errors</td>
+<td class="gt_row gt_right" headers="Events / qtr">6.0</td>
+<td class="gt_row gt_right" headers="Fast-lag weight">0.50</td>
+<td class="gt_row gt_right" headers="Slow-lag median (qtrs)">4.5</td>
+<td class="gt_row gt_right" headers="Median lag (qtrs)">2</td>
+<td class="gt_row gt_right" headers="90th-pct lag (qtrs)">9</td>
+<td class="gt_row gt_right" headers="Median severity">$29,733</td>
+<td class="gt_row gt_right" headers="Tail prob.">0.05</td>
+<td class="gt_row gt_right" headers="Severity uplift per lag qtr (linear, e)">0.05</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="Event type">Unauthorized trading</td>
+<td class="gt_row gt_right" headers="Events / qtr">0.3</td>
+<td class="gt_row gt_right" headers="Fast-lag weight">0.10</td>
+<td class="gt_row gt_right" headers="Slow-lag median (qtrs)">7.4</td>
+<td class="gt_row gt_right" headers="Median lag (qtrs)">6</td>
+<td class="gt_row gt_right" headers="90th-pct lag (qtrs)">22</td>
+<td class="gt_row gt_right" headers="Median severity">$242,802</td>
+<td class="gt_row gt_right" headers="Tail prob.">0.08</td>
+<td class="gt_row gt_right" headers="Severity uplift per lag qtr (linear, e)">0.08</td>
+</tr>
+</tbody><tfoot>
+<tr class="gt_sourcenotes odd">
+<td colspan="9" class="gt_sourcenote">All values are judgement-based assumptions (status: assumption in params.yaml), with no calibration to public loss data. Total expected loss is checked against a 10-15 bps of AUM target in the sanity check below; plausible ranges are given beside each value in params.yaml.</td>
+</tr>
+</tfoot>
+
+</table>
+
+</div>
+</div>
+</div>
+</figure>
+</div>
+</div>
+</section>
+<section id="discovery-lag-distributions" class="level2">
+<h2 class="anchored" data-anchor-id="discovery-lag-distributions">Discovery-lag distributions</h2>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>lags <span class="sc">|&gt;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(lag <span class="sc">&lt;=</span> <span class="dv">24</span>) <span class="sc">|&gt;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(type, lag) <span class="sc">|&gt;</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">share =</span> n <span class="sc">/</span> <span class="fl">2e5</span>, <span class="at">.by =</span> type) <span class="sc">|&gt;</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">type =</span> <span class="fu">factor</span>(type, <span class="at">levels =</span> type_lab)) <span class="sc">|&gt;</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(lag, share, <span class="at">fill =</span> type)) <span class="sc">+</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">width =</span> <span class="fl">0.85</span>) <span class="sc">+</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>type, <span class="at">nrow =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> type_col, <span class="at">guide =</span> <span class="st">"none"</span>) <span class="sc">+</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span><span class="fu">label_percent</span>()) <span class="sc">+</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Discovery lag (quarters, truncated at 24)"</span>, <span class="at">y =</span> <span class="st">"Share of events"</span>, <span class="at">title =</span> <span class="st">"Detection speed differs sharply by event type"</span>) <span class="sc">+</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_op</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div id="fig-lags" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-lags-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="data_files/figure-html/fig-lags-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-lags-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Simulated share of events by discovery lag, per event type (200,000 draws each).
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Median lags are Trade errors: 0, NAV errors: 2, Unauthorized trading: 6 quarters. The share of events discovered <strong>after</strong> the 40-quarter window is Trade errors 0.0%, NAV errors 0.1%, Unauthorized trading 2.7%.</p>
+<p>Few events fall outside the window, but for unauthorized trading they matter. Those events are scaled by up to <span class="math inline">\(1 + e \times 40 =\)</span> 4.2 times their initial size, and the denominator is only the loss that is still undiscovered. So the 2.7% of unauthorized-trading events beyond the window carry about 40% of the true undiscovered unauthorized-trading loss at the evaluation date (baseline, annual granularity, 200 databases). This is why a chain-ladder method confined to the window misses so much of that line.</p>
+</section>
+<section id="sanity-check-size-of-the-losses" class="level2">
+<h2 class="anchored" data-anchor-id="sanity-check-size-of-the-losses">Sanity check: size of the losses</h2>
+<p>An uncalibrated simulator can easily produce implausible losses, so we check the scale against an assumed AUM of $5.0B. Expected annual incurred loss (all events, discovered or not) over 200 simulated databases:</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>sims <span class="ot">&lt;-</span> parallel<span class="sc">::</span><span class="fu">mclapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">200</span>, \(r) {</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">simulate_database</span>(base, <span class="at">rep =</span> r) <span class="sc">|&gt;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">year =</span> <span class="fu">ceiling</span>(origin <span class="sc">/</span> <span class="dv">4</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarise</span>(<span class="at">inc =</span> <span class="fu">sum</span>(severity), <span class="at">n =</span> <span class="fu">n</span>(), <span class="at">.by =</span> <span class="fu">c</span>(type, year))</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>}, <span class="at">mc.cores =</span> <span class="fu">max</span>(<span class="dv">1</span>L, parallel<span class="sc">::</span><span class="fu">detectCores</span>() <span class="sc">-</span> <span class="dv">2</span>L)) <span class="sc">|&gt;</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bind_rows</span>(<span class="at">.id =</span> <span class="st">"rep"</span>)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>n_years <span class="ot">&lt;-</span> params<span class="sc">$</span>horizon<span class="sc">$</span>n_origin <span class="sc">/</span> <span class="dv">4</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>by_type <span class="ot">&lt;-</span> sims <span class="sc">|&gt;</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="st">`</span><span class="at">Mean loss / yr</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">sum</span>(inc) <span class="sc">/</span> (<span class="fu">n_distinct</span>(rep) <span class="sc">*</span> n_years), <span class="st">`</span><span class="at">Events / yr</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">sum</span>(n) <span class="sc">/</span> (<span class="fu">n_distinct</span>(rep) <span class="sc">*</span> n_years), <span class="at">.by =</span> type) <span class="sc">|&gt;</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Type =</span> type_lab[type], <span class="st">`</span><span class="at">bps of AUM</span><span class="st">`</span> <span class="ot">=</span> <span class="st">`</span><span class="at">Mean loss / yr</span><span class="st">`</span> <span class="sc">/</span> aum <span class="sc">*</span> <span class="fl">1e4</span>)</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Single-year totals (all types), pooled over databases and origin years: the same basis as VaR on the Control Value page.</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>year_totals <span class="ot">&lt;-</span> sims <span class="sc">|&gt;</span> <span class="fu">summarise</span>(<span class="at">inc =</span> <span class="fu">sum</span>(inc), <span class="at">.by =</span> <span class="fu">c</span>(rep, year))</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="fu">bind_rows</span>(</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>  by_type <span class="sc">|&gt;</span> <span class="fu">select</span>(Type, <span class="st">`</span><span class="at">Events / yr</span><span class="st">`</span>, <span class="st">`</span><span class="at">Mean loss / yr</span><span class="st">`</span>, <span class="st">`</span><span class="at">bps of AUM</span><span class="st">`</span>),</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tibble</span>(<span class="at">Type =</span> <span class="st">"All types"</span>, <span class="st">`</span><span class="at">Events / yr</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">sum</span>(by_type<span class="sc">$</span><span class="st">`</span><span class="at">Events / yr</span><span class="st">`</span>), <span class="st">`</span><span class="at">Mean loss / yr</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">mean</span>(year_totals<span class="sc">$</span>inc), <span class="st">`</span><span class="at">bps of AUM</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">mean</span>(year_totals<span class="sc">$</span>inc) <span class="sc">/</span> aum <span class="sc">*</span> <span class="fl">1e4</span>)</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Type =</span> <span class="fu">factor</span>(Type, <span class="at">levels =</span> <span class="fu">c</span>(type_lab, <span class="st">"All types"</span>))) <span class="sc">|&gt;</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(Type) <span class="sc">|&gt;</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>  gt<span class="sc">::</span><span class="fu">gt</span>() <span class="sc">|&gt;</span></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>  gt<span class="sc">::</span><span class="fu">fmt_number</span>(<span class="fu">c</span>(<span class="st">`</span><span class="at">Events / yr</span><span class="st">`</span>, <span class="st">`</span><span class="at">bps of AUM</span><span class="st">`</span>), <span class="at">decimals =</span> <span class="dv">1</span>) <span class="sc">|&gt;</span></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>  gt<span class="sc">::</span><span class="fu">fmt_currency</span>(<span class="st">`</span><span class="at">Mean loss / yr</span><span class="st">`</span>, <span class="at">decimals =</span> <span class="dv">0</span>) <span class="sc">|&gt;</span></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>  gt<span class="sc">::</span><span class="fu">tab_source_note</span>(<span class="fu">sprintf</span>(<span class="st">"Single-year total loss, pooled over %d databases x %d origin years: median %.1f bps, 95th percentile %.1f bps of AUM (VaR95 %s). Targeted range: 10-15 bps mean; this is an assumption, not a benchmark."</span>,</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>                              <span class="fu">n_distinct</span>(sims<span class="sc">$</span>rep), n_years, <span class="fu">median</span>(year_totals<span class="sc">$</span>inc) <span class="sc">/</span> aum <span class="sc">*</span> <span class="fl">1e4</span>, <span class="fu">quantile</span>(year_totals<span class="sc">$</span>inc, .<span class="dv">95</span>) <span class="sc">/</span> aum <span class="sc">*</span> <span class="fl">1e4</span>, <span class="fu">fmt_usd</span>(<span class="fu">quantile</span>(year_totals<span class="sc">$</span>inc, .<span class="dv">95</span>), <span class="dv">2</span>)))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div id="tbl-scale" class="cell quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl quarto-uncaptioned" id="tbl-scale-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;2
+</figcaption>
+<div aria-describedby="tbl-scale-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output-display">
+<div id="upnnsetpjx" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#upnnsetpjx table {
+  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#upnnsetpjx thead, #upnnsetpjx tbody, #upnnsetpjx tfoot, #upnnsetpjx tr, #upnnsetpjx td, #upnnsetpjx th {
+  border-style: none;
+}
+
+#upnnsetpjx p {
+  margin: 0;
+  padding: 0;
+}
+
+#upnnsetpjx .gt_table {
+  display: table;
+  border-collapse: collapse;
+  line-height: normal;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#upnnsetpjx .gt_caption {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+#upnnsetpjx .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#upnnsetpjx .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 3px;
+  padding-bottom: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#upnnsetpjx .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#upnnsetpjx .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#upnnsetpjx .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#upnnsetpjx .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#upnnsetpjx .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#upnnsetpjx .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#upnnsetpjx .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#upnnsetpjx .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#upnnsetpjx .gt_spanner_row {
+  border-bottom-style: hidden;
+}
+
+#upnnsetpjx .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  text-align: left;
+}
+
+#upnnsetpjx .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#upnnsetpjx .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#upnnsetpjx .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#upnnsetpjx .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#upnnsetpjx .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#upnnsetpjx .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+#upnnsetpjx .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+#upnnsetpjx .gt_row_group_first th {
+  border-top-width: 2px;
+}
+
+#upnnsetpjx .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#upnnsetpjx .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #D3D3D3;
+}
+
+#upnnsetpjx .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+#upnnsetpjx .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#upnnsetpjx .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#upnnsetpjx .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#upnnsetpjx .gt_last_grand_summary_row_top {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: double;
+  border-bottom-width: 6px;
+  border-bottom-color: #D3D3D3;
+}
+
+#upnnsetpjx .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#upnnsetpjx .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#upnnsetpjx .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#upnnsetpjx .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#upnnsetpjx .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#upnnsetpjx .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#upnnsetpjx .gt_left {
+  text-align: left;
+}
+
+#upnnsetpjx .gt_center {
+  text-align: center;
+}
+
+#upnnsetpjx .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#upnnsetpjx .gt_font_normal {
+  font-weight: normal;
+}
+
+#upnnsetpjx .gt_font_bold {
+  font-weight: bold;
+}
+
+#upnnsetpjx .gt_font_italic {
+  font-style: italic;
+}
+
+#upnnsetpjx .gt_super {
+  font-size: 65%;
+}
+
+#upnnsetpjx .gt_footnote_marks {
+  font-size: 75%;
+  vertical-align: 0.4em;
+  position: initial;
+}
+
+#upnnsetpjx .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+#upnnsetpjx .gt_indent_1 {
+  text-indent: 5px;
+}
+
+#upnnsetpjx .gt_indent_2 {
+  text-indent: 10px;
+}
+
+#upnnsetpjx .gt_indent_3 {
+  text-indent: 15px;
+}
+
+#upnnsetpjx .gt_indent_4 {
+  text-indent: 20px;
+}
+
+#upnnsetpjx .gt_indent_5 {
+  text-indent: 25px;
+}
+
+#upnnsetpjx .katex-display {
+  display: inline-flex !important;
+  margin-bottom: 0.75em !important;
+}
+
+#upnnsetpjx div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+  height: 0px !important;
+}
+</style>
+
+<table class="gt_table do-not-create-environment caption-top table table-sm table-striped small" data-quarto-bootstrap="false">
+<thead>
+<tr class="gt_col_headings header">
+<th id="Type" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">Type</th>
 <th id="Events-/-yr" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Events / yr</th>
 <th id="Mean-loss-/-yr" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Mean loss / yr</th>
 <th id="bps-of-AUM" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">bps of AUM</th>
@@ -1297,32 +1309,32 @@ Table&nbsp;2
 </thead>
 <tbody class="gt_table_body">
 <tr class="odd">
-<td class="gt_row gt_left" headers="Type">NAV errors</td>
-<td class="gt_row gt_right" headers="Events / yr">29.2</td>
-<td class="gt_row gt_right" headers="Mean loss / yr">$2,342,539</td>
-<td class="gt_row gt_right" headers="bps of AUM">4.7</td>
-</tr>
-<tr class="even">
-<td class="gt_row gt_left" headers="Type">Trade errors</td>
+<td class="gt_row gt_center" headers="Type">Trade errors</td>
 <td class="gt_row gt_right" headers="Events / yr">294.0</td>
 <td class="gt_row gt_right" headers="Mean loss / yr">$1,262,567</td>
 <td class="gt_row gt_right" headers="bps of AUM">2.5</td>
 </tr>
+<tr class="even">
+<td class="gt_row gt_center" headers="Type">NAV errors</td>
+<td class="gt_row gt_right" headers="Events / yr">29.2</td>
+<td class="gt_row gt_right" headers="Mean loss / yr">$2,342,539</td>
+<td class="gt_row gt_right" headers="bps of AUM">4.7</td>
+</tr>
 <tr class="odd">
-<td class="gt_row gt_left" headers="Type">Unauthorized trading</td>
+<td class="gt_row gt_center" headers="Type">Unauthorized trading</td>
 <td class="gt_row gt_right" headers="Events / yr">1.4</td>
 <td class="gt_row gt_right" headers="Mean loss / yr">$2,430,188</td>
 <td class="gt_row gt_right" headers="bps of AUM">4.9</td>
 </tr>
 <tr class="even">
-<td class="gt_row gt_left" headers="Type">All types</td>
+<td class="gt_row gt_center" headers="Type">All types</td>
 <td class="gt_row gt_right" headers="Events / yr">324.6</td>
 <td class="gt_row gt_right" headers="Mean loss / yr">$6,035,294</td>
 <td class="gt_row gt_right" headers="bps of AUM">12.1</td>
 </tr>
 </tbody><tfoot>
 <tr class="gt_sourcenotes odd">
-<td colspan="4" class="gt_sourcenote">Annual total: median 10.1 bps, 95th percentile 20.5 bps of AUM. Targeted range: 10-15 bps mean; this is an assumption, not a benchmark.</td>
+<td colspan="4" class="gt_sourcenote">Single-year total loss, pooled over 200 databases x 10 origin years: median 8.6 bps, 95th percentile 23.0 bps of AUM (VaR95 $11.48M). Targeted range: 10-15 bps mean; this is an assumption, not a benchmark.</td>
 </tr>
 </tfoot>
 
@@ -1355,11 +1367,11 @@ Table&nbsp;2
 </tr>
 <tr class="even">
 <td>Heavy-tail shock</td>
-<td>Two very large unauthorized-trading losses injected ($60M and $40M)</td>
+<td>Two very large unauthorized-trading losses injected: $60M originating in quarter 12 and discovered in quarter 27 (reported), and $40M originating in quarter 20 and discovered in quarter 42 (after the evaluation date, so undiscovered)</td>
 </tr>
 <tr class="odd">
 <td>Control improvement</td>
-<td>From quarter 24, the remaining time to discovery falls by 50%</td>
+<td><strong>Applies to all three event types.</strong> For every event whose discovery quarter <span class="math inline">\(d\)</span> is after the change quarter <span class="math inline">\(c =\)</span> 24, the discovery quarter becomes <span class="math inline">\(c + \lfloor (d - c)(1 - r) \rfloor\)</span> with <span class="math inline">\(r =\)</span> 50%. This covers both events already pending at <span class="math inline">\(c\)</span> and events that originate afterwards. Severity is drawn before the shift, so only timing changes, not the loss amount.</td>
 </tr>
 <tr class="even">
 <td>Exposure growth</td>
@@ -1367,6 +1379,7 @@ Table&nbsp;2
 </tr>
 </tbody>
 </table>
+<p>The two example <strong>controls</strong> on the <a href="./controls.html">Control Value</a> page work differently from the control-improvement scenario above. They shift the lag-distribution parameters (additively, for the event types listed in <code>params.yaml</code>) for the whole simulated history before severities are drawn, so a faster-detected event is also smaller through the <span class="math inline">\((1 + e \times \text{lag})\)</span> term.</p>
 
 
 </section>

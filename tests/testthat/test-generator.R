@@ -41,3 +41,50 @@ test_that("invalid parameters are rejected", {
   expect_error(validate_params(bad))
   expect_error(apply_scenario(params, "nope"))
 })
+
+test_that("control shift halves the time remaining measured from max(origin, shift quarter)", {
+  cq <- params$scenarios$control_improvement$control_shift$calendar_quarter
+  ev <- tibble::tibble(origin = rep(c(10, 30), each = 20000), lag = rep(c(30, 6), each = 20000))
+  out <- apply_control_shift(ev, list(calendar_quarter = cq, reduction = 0.5))
+  # pending at cq: discovery 40, remaining 16 -> 8, so discovery 32 and lag 22 (exact for even remaining time)
+  expect_true(all(out$lag[ev$origin == 10] == 22))
+  # originates after cq: the whole lag falls by half, not collapses to zero
+  expect_equal(mean(out$lag[ev$origin == 30]), 3, tolerance = 0.02)
+  # odd remaining time rounds stochastically, preserving the mean reduction
+  odd <- apply_control_shift(tibble::tibble(origin = rep(30, 20000), lag = 3), list(calendar_quarter = cq, reduction = 0.5))
+  expect_equal(mean(odd$lag), 1.5, tolerance = 0.02)
+  # events already discovered before the shift quarter are untouched
+  early <- apply_control_shift(tibble::tibble(origin = 2, lag = 5), list(calendar_quarter = cq, reduction = 0.5))
+  expect_equal(early$lag, 5)
+})
+
+test_that("control improvement leaves a visible share of events undiscovered at the evaluation date", {
+  n_o <- params$horizon$n_origin
+  und <- \(sc) {
+    ev <- purrr::map(1:10, \(r) simulate_database(apply_scenario(params, sc), rep = r, scenario_index = 1) |> dplyr::filter(type == "trade_error"))
+    mean(purrr::map_dbl(ev, \(e) mean(e$origin + e$lag > n_o)))
+  }
+  b <- und("baseline")
+  ci <- und("control_improvement")
+  expect_gt(b, 0)
+  expect_gt(ci, 0.3 * b)
+  expect_lt(ci, b)
+})
+
+test_that("negative-binomial counts are overdispersed relative to Poisson with the same mean", {
+  pn <- apply_scenario(params, "overdispersion")
+  expect_identical(pn$count_dist, "negbin")
+  counts <- \(p) purrr::map_dbl(1:150, \(r) sum(simulate_database(p, rep = r)$type == "trade_error"))
+  cb <- counts(apply_scenario(params, "baseline"))
+  cn <- counts(pn)
+  expect_equal(mean(cn), mean(cb), tolerance = 0.05)
+  expect_gt(var(cn), 2 * var(cb))
+})
+
+test_that("reporting threshold removes small losses and nothing else", {
+  p <- apply_scenario(params, "reporting_threshold_10k")
+  ev <- simulate_database(p, rep = 1)
+  full <- simulate_database(apply_scenario(params, "baseline"), rep = 1)
+  expect_true(all(ev$severity >= 1e4))
+  expect_equal(nrow(ev), sum(full$severity >= 1e4))
+})

@@ -13,13 +13,25 @@ draw_severity <- function(n, sev, lag) {
   ifelse(is_tail, tail, body) * (1 + sev$lag_elasticity * lag)
 }
 
+# "Remaining time to discovery" is measured from the later of the shift quarter and the event's origin, so an event
+# that originates after the shift has its whole lag reduced, never a lag that was partly spent before it existed.
+# Fractional quarters are rounded stochastically so the mean reduction is exactly `reduction`.
 apply_control_shift <- function(events, shift) {
-  if (is.null(shift)) return(events)
-  cq <- shift$calendar_quarter
+  if (is.null(shift) || nrow(events) == 0) return(events)
+  start <- pmax(events$origin, shift$calendar_quarter)
   discovery <- events$origin + events$lag
-  shifted <- ifelse(discovery > cq, cq + floor((discovery - cq) * (1 - shift$reduction)), discovery)
-  events$lag <- pmax(shifted, events$origin) - events$origin
+  remaining <- pmax(discovery - start, 0) * (1 - shift$reduction)
+  rounded <- floor(remaining) + (stats::runif(nrow(events)) < remaining - floor(remaining))
+  events$lag <- ifelse(discovery > start, start + rounded - events$origin, events$lag)
   events
+}
+
+draw_counts <- function(n, mu, spec, params) {
+  if (identical(params$count_dist, "negbin")) {
+    stats::rnbinom(n, size = params$count_size[[spec$name]], mu = mu)
+  } else {
+    stats::rpois(n, mu)
+  }
 }
 
 simulate_type <- function(type, params, seed) {
@@ -27,7 +39,8 @@ simulate_type <- function(type, params, seed) {
   set.seed(seed)
   n_origin <- params$horizon$n_origin
   exposure <- params$exposure$base * (1 + params$exposure$growth_per_quarter)^(seq_len(n_origin) - 1)
-  counts <- stats::rpois(n_origin, spec$lambda * exposure)
+  spec$name <- type
+  counts <- draw_counts(n_origin, spec$lambda * exposure, spec, params)
   origin <- rep(seq_len(n_origin), counts)
   lag <- draw_lag(length(origin), spec$lag)
   severity <- draw_severity(length(origin), spec$severity, lag)
@@ -48,6 +61,7 @@ simulate_database <- function(params, rep = 1L, scenario_index = 1L) {
   }) |>
     purrr::list_rbind() |>
     inject_events(params$injected_events)
+  events <- events[events$severity >= (params$reporting_threshold_usd %||% 0), ]
   events |>
     dplyr::mutate(discovery = origin + lag, event_id = dplyr::row_number()) |>
     dplyr::arrange(type, origin, lag)

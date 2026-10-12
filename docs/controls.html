@@ -104,6 +104,35 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   }
 }</script>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 </head>
 
@@ -144,6 +173,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <a class="nav-link" href="./reproducibility.html"> 
 <span class="menu-text">Reproducibility &amp; Limitations</span></a>
   </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./ml-appendix.html"> 
+<span class="menu-text">ML appendix</span></a>
+  </li>  
 </ul>
           </div> <!-- /navcollapse -->
             <div class="quarto-navbar-tools">
@@ -163,6 +196,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#the-two-controls" id="toc-the-two-controls" class="nav-link active" data-scroll-target="#the-two-controls">The two controls</a></li>
   <li><a href="#result-expected-loss-and-tail" id="toc-result-expected-loss-and-tail" class="nav-link" data-scroll-target="#result-expected-loss-and-tail">Result: expected loss and tail</a></li>
   <li><a href="#how-effective-must-a-control-be-break-even" id="toc-how-effective-must-a-control-be-break-even" class="nav-link" data-scroll-target="#how-effective-must-a-control-be-break-even">How effective must a control be? Break-even</a></li>
+  <li><a href="#sec-sensitivity" id="toc-sec-sensitivity" class="nav-link" data-scroll-target="#sec-sensitivity">Sensitivity to severity growth</a></li>
+  <li><a href="#sec-information" id="toc-sec-information" class="nav-link" data-scroll-target="#sec-information">Information value</a></li>
   <li><a href="#caveats-specific-to-this-page" id="toc-caveats-specific-to-this-page" class="nav-link" data-scroll-target="#caveats-specific-to-this-page">Caveats specific to this page</a></li>
   </ul>
 </nav>
@@ -189,7 +224,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>Faster detection has value because (i) loss is recorded sooner, which improves information, and (ii) in this simulator an event’s size grows with the time it stays undiscovered. This page measures how much a detection control is worth <strong>under those assumptions</strong>. The effect sizes and costs are placeholders, not benchmarks; a real engagement would replace them with measured detection times and quoted prices.</p>
+<p>Faster detection has value because (i) loss is recorded sooner, which improves information, and (ii) in this simulator an event’s size grows linearly with the time it stays undiscovered, through the factor <span class="math inline">\((1 + e \times \text{lag})\)</span>. <strong>Channel (ii) is the only way a control changes incurred loss</strong>; if <span class="math inline">\(e = 0\)</span>, mean and tail incurred loss are identical with and without the control, and only the information value in (i) remains. This page measures how much a detection control is worth <strong>under those assumptions</strong>. The effect sizes and costs are placeholders, not benchmarks; a real engagement would replace them with measured detection times and quoted prices.</p>
 <section id="the-two-controls" class="level2">
 <h2 class="anchored" data-anchor-id="the-two-controls">The two controls</h2>
 <div class="cell">
@@ -210,23 +245,23 @@ Table&nbsp;1
 </figcaption>
 <div aria-describedby="tbl-controls-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output-display">
-<div id="ypuvkfwmum" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#ypuvkfwmum table {
+<div id="ximakgcngp" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#ximakgcngp table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#ypuvkfwmum thead, #ypuvkfwmum tbody, #ypuvkfwmum tfoot, #ypuvkfwmum tr, #ypuvkfwmum td, #ypuvkfwmum th {
+#ximakgcngp thead, #ximakgcngp tbody, #ximakgcngp tfoot, #ximakgcngp tr, #ximakgcngp td, #ximakgcngp th {
   border-style: none;
 }
 
-#ypuvkfwmum p {
+#ximakgcngp p {
   margin: 0;
   padding: 0;
 }
 
-#ypuvkfwmum .gt_table {
+#ximakgcngp .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -252,12 +287,12 @@ Table&nbsp;1
   border-left-color: #D3D3D3;
 }
 
-#ypuvkfwmum .gt_caption {
+#ximakgcngp .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#ypuvkfwmum .gt_title {
+#ximakgcngp .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -269,7 +304,7 @@ Table&nbsp;1
   border-bottom-width: 0;
 }
 
-#ypuvkfwmum .gt_subtitle {
+#ximakgcngp .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -281,7 +316,7 @@ Table&nbsp;1
   border-top-width: 0;
 }
 
-#ypuvkfwmum .gt_heading {
+#ximakgcngp .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -293,13 +328,13 @@ Table&nbsp;1
   border-right-color: #D3D3D3;
 }
 
-#ypuvkfwmum .gt_bottom_border {
+#ximakgcngp .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#ypuvkfwmum .gt_col_headings {
+#ximakgcngp .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -314,7 +349,7 @@ Table&nbsp;1
   border-right-color: #D3D3D3;
 }
 
-#ypuvkfwmum .gt_col_heading {
+#ximakgcngp .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -334,7 +369,7 @@ Table&nbsp;1
   overflow-x: hidden;
 }
 
-#ypuvkfwmum .gt_column_spanner_outer {
+#ximakgcngp .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -346,15 +381,15 @@ Table&nbsp;1
   padding-right: 4px;
 }
 
-#ypuvkfwmum .gt_column_spanner_outer:first-child {
+#ximakgcngp .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#ypuvkfwmum .gt_column_spanner_outer:last-child {
+#ximakgcngp .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#ypuvkfwmum .gt_column_spanner {
+#ximakgcngp .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -366,11 +401,11 @@ Table&nbsp;1
   width: 100%;
 }
 
-#ypuvkfwmum .gt_spanner_row {
+#ximakgcngp .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#ypuvkfwmum .gt_group_heading {
+#ximakgcngp .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -396,7 +431,7 @@ Table&nbsp;1
   text-align: left;
 }
 
-#ypuvkfwmum .gt_empty_group_heading {
+#ximakgcngp .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -411,15 +446,15 @@ Table&nbsp;1
   vertical-align: middle;
 }
 
-#ypuvkfwmum .gt_from_md > :first-child {
+#ximakgcngp .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#ypuvkfwmum .gt_from_md > :last-child {
+#ximakgcngp .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#ypuvkfwmum .gt_row {
+#ximakgcngp .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -438,7 +473,7 @@ Table&nbsp;1
   overflow-x: hidden;
 }
 
-#ypuvkfwmum .gt_stub {
+#ximakgcngp .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -451,7 +486,7 @@ Table&nbsp;1
   padding-right: 5px;
 }
 
-#ypuvkfwmum .gt_stub_row_group {
+#ximakgcngp .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -465,15 +500,15 @@ Table&nbsp;1
   vertical-align: top;
 }
 
-#ypuvkfwmum .gt_row_group_first td {
+#ximakgcngp .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#ypuvkfwmum .gt_row_group_first th {
+#ximakgcngp .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#ypuvkfwmum .gt_summary_row {
+#ximakgcngp .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -483,16 +518,16 @@ Table&nbsp;1
   padding-right: 5px;
 }
 
-#ypuvkfwmum .gt_first_summary_row {
+#ximakgcngp .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-#ypuvkfwmum .gt_first_summary_row.thick {
+#ximakgcngp .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#ypuvkfwmum .gt_last_summary_row {
+#ximakgcngp .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -502,7 +537,7 @@ Table&nbsp;1
   border-bottom-color: #D3D3D3;
 }
 
-#ypuvkfwmum .gt_grand_summary_row {
+#ximakgcngp .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -512,7 +547,7 @@ Table&nbsp;1
   padding-right: 5px;
 }
 
-#ypuvkfwmum .gt_first_grand_summary_row {
+#ximakgcngp .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -522,7 +557,7 @@ Table&nbsp;1
   border-top-color: #D3D3D3;
 }
 
-#ypuvkfwmum .gt_last_grand_summary_row_top {
+#ximakgcngp .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -532,11 +567,11 @@ Table&nbsp;1
   border-bottom-color: #D3D3D3;
 }
 
-#ypuvkfwmum .gt_striped {
+#ximakgcngp .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#ypuvkfwmum .gt_table_body {
+#ximakgcngp .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -545,7 +580,7 @@ Table&nbsp;1
   border-bottom-color: #D3D3D3;
 }
 
-#ypuvkfwmum .gt_footnotes {
+#ximakgcngp .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -559,7 +594,7 @@ Table&nbsp;1
   border-right-color: #D3D3D3;
 }
 
-#ypuvkfwmum .gt_footnote {
+#ximakgcngp .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -568,7 +603,7 @@ Table&nbsp;1
   padding-right: 5px;
 }
 
-#ypuvkfwmum .gt_sourcenotes {
+#ximakgcngp .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -582,7 +617,7 @@ Table&nbsp;1
   border-right-color: #D3D3D3;
 }
 
-#ypuvkfwmum .gt_sourcenote {
+#ximakgcngp .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -590,72 +625,72 @@ Table&nbsp;1
   padding-right: 5px;
 }
 
-#ypuvkfwmum .gt_left {
+#ximakgcngp .gt_left {
   text-align: left;
 }
 
-#ypuvkfwmum .gt_center {
+#ximakgcngp .gt_center {
   text-align: center;
 }
 
-#ypuvkfwmum .gt_right {
+#ximakgcngp .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#ypuvkfwmum .gt_font_normal {
+#ximakgcngp .gt_font_normal {
   font-weight: normal;
 }
 
-#ypuvkfwmum .gt_font_bold {
+#ximakgcngp .gt_font_bold {
   font-weight: bold;
 }
 
-#ypuvkfwmum .gt_font_italic {
+#ximakgcngp .gt_font_italic {
   font-style: italic;
 }
 
-#ypuvkfwmum .gt_super {
+#ximakgcngp .gt_super {
   font-size: 65%;
 }
 
-#ypuvkfwmum .gt_footnote_marks {
+#ximakgcngp .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#ypuvkfwmum .gt_asterisk {
+#ximakgcngp .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#ypuvkfwmum .gt_indent_1 {
+#ximakgcngp .gt_indent_1 {
   text-indent: 5px;
 }
 
-#ypuvkfwmum .gt_indent_2 {
+#ximakgcngp .gt_indent_2 {
   text-indent: 10px;
 }
 
-#ypuvkfwmum .gt_indent_3 {
+#ximakgcngp .gt_indent_3 {
   text-indent: 15px;
 }
 
-#ypuvkfwmum .gt_indent_4 {
+#ximakgcngp .gt_indent_4 {
   text-indent: 20px;
 }
 
-#ypuvkfwmum .gt_indent_5 {
+#ximakgcngp .gt_indent_5 {
   text-indent: 25px;
 }
 
-#ypuvkfwmum .katex-display {
+#ximakgcngp .katex-display {
   display: inline-flex !important;
   margin-bottom: 0.75em !important;
 }
 
-#ypuvkfwmum div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+#ximakgcngp div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
   height: 0px !important;
 }
 </style>
@@ -701,7 +736,7 @@ Table&nbsp;1
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">Arm =</span> ctl_lab[arm],</span>
 <span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Mean incurred / yr</span><span class="st">`</span> <span class="ot">=</span> mean_incurred_per_year,</span>
 <span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">bps of AUM</span><span class="st">`</span> <span class="ot">=</span> mean_incurred_per_year <span class="sc">/</span> aum <span class="sc">*</span> <span class="fl">1e4</span>,</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Saving / yr</span><span class="st">`</span> <span class="ot">=</span> mean_saving_per_year,</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Saving / yr</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">if_else</span>(arm <span class="sc">==</span> <span class="st">"baseline"</span>, <span class="cn">NA_real_</span>, mean_saving_per_year),</span>
 <span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Annual cost</span><span class="st">`</span> <span class="ot">=</span> annual_cost,</span>
 <span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Net / yr</span><span class="st">`</span> <span class="ot">=</span> net_benefit_per_year,</span>
 <span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Undiscovered at year 10</span><span class="st">`</span> <span class="ot">=</span> mean_undiscovered,</span>
@@ -712,7 +747,7 @@ Table&nbsp;1
 <span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>  gt<span class="sc">::</span><span class="fu">fmt_currency</span>(<span class="sc">-</span><span class="fu">c</span>(Arm, <span class="st">`</span><span class="at">bps of AUM</span><span class="st">`</span>), <span class="at">decimals =</span> <span class="dv">2</span>, <span class="at">suffixing =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span></span>
 <span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>  gt<span class="sc">::</span><span class="fu">fmt_number</span>(<span class="st">`</span><span class="at">bps of AUM</span><span class="st">`</span>, <span class="at">decimals =</span> <span class="dv">1</span>) <span class="sc">|&gt;</span></span>
 <span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>  gt<span class="sc">::</span><span class="fu">sub_missing</span>(<span class="at">missing_text =</span> <span class="st">"-"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>  gt<span class="sc">::</span><span class="fu">tab_source_note</span>(<span class="st">"VaR/ES are over single origin-year totals pooled across 200 databases (2,000 years). Savings are paired against the baseline arm."</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>  gt<span class="sc">::</span><span class="fu">tab_source_note</span>(<span class="st">"VaR/ES are over single origin-year totals pooled across 200 databases (2,000 years), so ES95 averages about 100 tail years. Savings are paired against the baseline arm. At full effectiveness the saving is also the most the control could cost and still break even."</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div id="tbl-ctl" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
@@ -721,23 +756,23 @@ Table&nbsp;2
 </figcaption>
 <div aria-describedby="tbl-ctl-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output-display">
-<div id="vyyeqnqhhr" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#vyyeqnqhhr table {
+<div id="hbvphgnspi" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#hbvphgnspi table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#vyyeqnqhhr thead, #vyyeqnqhhr tbody, #vyyeqnqhhr tfoot, #vyyeqnqhhr tr, #vyyeqnqhhr td, #vyyeqnqhhr th {
+#hbvphgnspi thead, #hbvphgnspi tbody, #hbvphgnspi tfoot, #hbvphgnspi tr, #hbvphgnspi td, #hbvphgnspi th {
   border-style: none;
 }
 
-#vyyeqnqhhr p {
+#hbvphgnspi p {
   margin: 0;
   padding: 0;
 }
 
-#vyyeqnqhhr .gt_table {
+#hbvphgnspi .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -763,12 +798,12 @@ Table&nbsp;2
   border-left-color: #D3D3D3;
 }
 
-#vyyeqnqhhr .gt_caption {
+#hbvphgnspi .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#vyyeqnqhhr .gt_title {
+#hbvphgnspi .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -780,7 +815,7 @@ Table&nbsp;2
   border-bottom-width: 0;
 }
 
-#vyyeqnqhhr .gt_subtitle {
+#hbvphgnspi .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -792,7 +827,7 @@ Table&nbsp;2
   border-top-width: 0;
 }
 
-#vyyeqnqhhr .gt_heading {
+#hbvphgnspi .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -804,13 +839,13 @@ Table&nbsp;2
   border-right-color: #D3D3D3;
 }
 
-#vyyeqnqhhr .gt_bottom_border {
+#hbvphgnspi .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#vyyeqnqhhr .gt_col_headings {
+#hbvphgnspi .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -825,7 +860,7 @@ Table&nbsp;2
   border-right-color: #D3D3D3;
 }
 
-#vyyeqnqhhr .gt_col_heading {
+#hbvphgnspi .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -845,7 +880,7 @@ Table&nbsp;2
   overflow-x: hidden;
 }
 
-#vyyeqnqhhr .gt_column_spanner_outer {
+#hbvphgnspi .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -857,15 +892,15 @@ Table&nbsp;2
   padding-right: 4px;
 }
 
-#vyyeqnqhhr .gt_column_spanner_outer:first-child {
+#hbvphgnspi .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#vyyeqnqhhr .gt_column_spanner_outer:last-child {
+#hbvphgnspi .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#vyyeqnqhhr .gt_column_spanner {
+#hbvphgnspi .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -877,11 +912,11 @@ Table&nbsp;2
   width: 100%;
 }
 
-#vyyeqnqhhr .gt_spanner_row {
+#hbvphgnspi .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#vyyeqnqhhr .gt_group_heading {
+#hbvphgnspi .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -907,7 +942,7 @@ Table&nbsp;2
   text-align: left;
 }
 
-#vyyeqnqhhr .gt_empty_group_heading {
+#hbvphgnspi .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -922,15 +957,15 @@ Table&nbsp;2
   vertical-align: middle;
 }
 
-#vyyeqnqhhr .gt_from_md > :first-child {
+#hbvphgnspi .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#vyyeqnqhhr .gt_from_md > :last-child {
+#hbvphgnspi .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#vyyeqnqhhr .gt_row {
+#hbvphgnspi .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -949,7 +984,7 @@ Table&nbsp;2
   overflow-x: hidden;
 }
 
-#vyyeqnqhhr .gt_stub {
+#hbvphgnspi .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -962,7 +997,7 @@ Table&nbsp;2
   padding-right: 5px;
 }
 
-#vyyeqnqhhr .gt_stub_row_group {
+#hbvphgnspi .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -976,15 +1011,15 @@ Table&nbsp;2
   vertical-align: top;
 }
 
-#vyyeqnqhhr .gt_row_group_first td {
+#hbvphgnspi .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#vyyeqnqhhr .gt_row_group_first th {
+#hbvphgnspi .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#vyyeqnqhhr .gt_summary_row {
+#hbvphgnspi .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -994,16 +1029,16 @@ Table&nbsp;2
   padding-right: 5px;
 }
 
-#vyyeqnqhhr .gt_first_summary_row {
+#hbvphgnspi .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-#vyyeqnqhhr .gt_first_summary_row.thick {
+#hbvphgnspi .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#vyyeqnqhhr .gt_last_summary_row {
+#hbvphgnspi .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1013,7 +1048,7 @@ Table&nbsp;2
   border-bottom-color: #D3D3D3;
 }
 
-#vyyeqnqhhr .gt_grand_summary_row {
+#hbvphgnspi .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -1023,7 +1058,7 @@ Table&nbsp;2
   padding-right: 5px;
 }
 
-#vyyeqnqhhr .gt_first_grand_summary_row {
+#hbvphgnspi .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1033,7 +1068,7 @@ Table&nbsp;2
   border-top-color: #D3D3D3;
 }
 
-#vyyeqnqhhr .gt_last_grand_summary_row_top {
+#hbvphgnspi .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1043,11 +1078,11 @@ Table&nbsp;2
   border-bottom-color: #D3D3D3;
 }
 
-#vyyeqnqhhr .gt_striped {
+#hbvphgnspi .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#vyyeqnqhhr .gt_table_body {
+#hbvphgnspi .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -1056,7 +1091,7 @@ Table&nbsp;2
   border-bottom-color: #D3D3D3;
 }
 
-#vyyeqnqhhr .gt_footnotes {
+#hbvphgnspi .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1070,7 +1105,7 @@ Table&nbsp;2
   border-right-color: #D3D3D3;
 }
 
-#vyyeqnqhhr .gt_footnote {
+#hbvphgnspi .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -1079,7 +1114,7 @@ Table&nbsp;2
   padding-right: 5px;
 }
 
-#vyyeqnqhhr .gt_sourcenotes {
+#hbvphgnspi .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1093,7 +1128,7 @@ Table&nbsp;2
   border-right-color: #D3D3D3;
 }
 
-#vyyeqnqhhr .gt_sourcenote {
+#hbvphgnspi .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -1101,72 +1136,72 @@ Table&nbsp;2
   padding-right: 5px;
 }
 
-#vyyeqnqhhr .gt_left {
+#hbvphgnspi .gt_left {
   text-align: left;
 }
 
-#vyyeqnqhhr .gt_center {
+#hbvphgnspi .gt_center {
   text-align: center;
 }
 
-#vyyeqnqhhr .gt_right {
+#hbvphgnspi .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#vyyeqnqhhr .gt_font_normal {
+#hbvphgnspi .gt_font_normal {
   font-weight: normal;
 }
 
-#vyyeqnqhhr .gt_font_bold {
+#hbvphgnspi .gt_font_bold {
   font-weight: bold;
 }
 
-#vyyeqnqhhr .gt_font_italic {
+#hbvphgnspi .gt_font_italic {
   font-style: italic;
 }
 
-#vyyeqnqhhr .gt_super {
+#hbvphgnspi .gt_super {
   font-size: 65%;
 }
 
-#vyyeqnqhhr .gt_footnote_marks {
+#hbvphgnspi .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#vyyeqnqhhr .gt_asterisk {
+#hbvphgnspi .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#vyyeqnqhhr .gt_indent_1 {
+#hbvphgnspi .gt_indent_1 {
   text-indent: 5px;
 }
 
-#vyyeqnqhhr .gt_indent_2 {
+#hbvphgnspi .gt_indent_2 {
   text-indent: 10px;
 }
 
-#vyyeqnqhhr .gt_indent_3 {
+#hbvphgnspi .gt_indent_3 {
   text-indent: 15px;
 }
 
-#vyyeqnqhhr .gt_indent_4 {
+#hbvphgnspi .gt_indent_4 {
   text-indent: 20px;
 }
 
-#vyyeqnqhhr .gt_indent_5 {
+#hbvphgnspi .gt_indent_5 {
   text-indent: 25px;
 }
 
-#vyyeqnqhhr .katex-display {
+#hbvphgnspi .katex-display {
   display: inline-flex !important;
   margin-bottom: 0.75em !important;
 }
 
-#vyyeqnqhhr div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+#hbvphgnspi div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
   height: 0px !important;
 }
 </style>
@@ -1190,7 +1225,7 @@ Table&nbsp;2
 <td class="gt_row gt_left" headers="Arm">Baseline</td>
 <td class="gt_row gt_right" headers="Mean incurred / yr">$6.04M</td>
 <td class="gt_row gt_right" headers="bps of AUM">12.1</td>
-<td class="gt_row gt_right" headers="Saving / yr">$0.00</td>
+<td class="gt_row gt_right" headers="Saving / yr">-</td>
 <td class="gt_row gt_right" headers="Annual cost">-</td>
 <td class="gt_row gt_right" headers="Net / yr">-</td>
 <td class="gt_row gt_right" headers="Undiscovered at year 10">$12.62M</td>
@@ -1221,7 +1256,7 @@ Table&nbsp;2
 </tr>
 </tbody><tfoot>
 <tr class="gt_sourcenotes odd">
-<td colspan="9" class="gt_sourcenote">VaR/ES are over single origin-year totals pooled across 200 databases (2,000 years). Savings are paired against the baseline arm.</td>
+<td colspan="9" class="gt_sourcenote">VaR/ES are over single origin-year totals pooled across 200 databases (2,000 years), so ES95 averages about 100 tail years. Savings are paired against the baseline arm. At full effectiveness the saving is also the most the control could cost and still break even.</td>
 </tr>
 </tfoot>
 
@@ -1240,31 +1275,33 @@ Table&nbsp;2
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>r2 <span class="ot">&lt;-</span> ctl <span class="sc">|&gt;</span> <span class="fu">filter</span>(arm <span class="sc">==</span> <span class="st">"independent_pnl_verification"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
-<p>On expected loss alone, both controls are close to break-even: reconciliation automation saves $502.30K a year against a $400.00K cost (net $102.30K), and independent P&amp;L verification saves $735.12K against $700.00K (net $35.12K). The tail benefit is larger: 95% expected shortfall of annual loss falls from $31.8M to $26.8M and $23.4M.</p>
+<p>On expected loss alone, both controls are close to break-even: reconciliation automation saves $502.30K a year against a $400.00K cost (net $102.30K), and independent P&amp;L verification saves $735.12K against $700.00K (net $35.12K). Put differently, the most each control could cost and still break even at full effectiveness is its mean saving. The simulated 95% expected shortfall of annual loss falls from $31.8M to $26.8M and $23.4M; the intervals below show how well that is pinned down. Because baseline and control share seeds, a paired bootstrap of the <em>reduction</em> is tighter than the separate intervals: ES95 falls by $5.0M (95% interval $3.0M to $7.4M) under reconciliation automation and by $8.4M ($5.1M to $12.2M) under independent P&amp;L verification. Both the mean and the tail savings come from the same severity-growth mechanism (see the <a href="#sec-sensitivity">sensitivity</a> below).</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>ctl <span class="sc">|&gt;</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(arm, <span class="st">`</span><span class="at">95% VaR</span><span class="st">`</span> <span class="ot">=</span> annual_var95, <span class="st">`</span><span class="at">95% ES</span><span class="st">`</span> <span class="ot">=</span> annual_es95) <span class="sc">|&gt;</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="sc">-</span>arm) <span class="sc">|&gt;</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">arm =</span> <span class="fu">factor</span>(arm, <span class="at">levels =</span> <span class="fu">names</span>(ctl_lab))) <span class="sc">|&gt;</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(arm, value, <span class="at">fill =</span> arm)) <span class="sc">+</span></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">width =</span> <span class="fl">0.65</span>) <span class="sc">+</span></span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>name) <span class="sc">+</span></span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="at">baseline =</span> <span class="st">"grey60"</span>, ctl_col), <span class="at">guide =</span> <span class="st">"none"</span>) <span class="sc">+</span></span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> fmt_usd) <span class="sc">+</span></span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_discrete</span>(<span class="at">labels =</span> \(x) <span class="fu">str_wrap</span>(ctl_lab[x], <span class="dv">14</span>)) <span class="sc">+</span></span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="st">"Annual loss"</span>, <span class="at">title =</span> <span class="st">"Faster detection thins the tail more than it moves the mean"</span>) <span class="sc">+</span></span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_op</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">bind_rows</span>(</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  tail_ci <span class="sc">|&gt;</span> <span class="fu">transmute</span>(arm, <span class="at">stat =</span> <span class="st">"95% VaR"</span>, <span class="at">value =</span> var95, <span class="at">lo =</span> var95_lo, <span class="at">hi =</span> var95_hi),</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  tail_ci <span class="sc">|&gt;</span> <span class="fu">transmute</span>(arm, <span class="at">stat =</span> <span class="st">"95% ES"</span>, <span class="at">value =</span> es95, <span class="at">lo =</span> es95_lo, <span class="at">hi =</span> es95_hi)</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">arm =</span> <span class="fu">factor</span>(arm, <span class="at">levels =</span> <span class="fu">names</span>(ctl_lab))) <span class="sc">|&gt;</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(arm, value, <span class="at">fill =</span> arm)) <span class="sc">+</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">width =</span> <span class="fl">0.65</span>) <span class="sc">+</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_errorbar</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> lo, <span class="at">ymax =</span> hi), <span class="at">width =</span> <span class="fl">0.2</span>) <span class="sc">+</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>stat) <span class="sc">+</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="at">baseline =</span> <span class="st">"grey60"</span>, ctl_col), <span class="at">guide =</span> <span class="st">"none"</span>) <span class="sc">+</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> fmt_usd) <span class="sc">+</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_discrete</span>(<span class="at">labels =</span> \(x) <span class="fu">str_wrap</span>(ctl_lab[x], <span class="dv">14</span>)) <span class="sc">+</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="st">"Annual loss"</span>, <span class="at">title =</span> <span class="st">"Tail loss under each control"</span>, <span class="at">subtitle =</span> <span class="st">"ES rests on about 100 tail years out of 2,000, so it is the noisier statistic"</span>) <span class="sc">+</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_op</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
-<div id="fig-tail" class="quarto-float quarto-figure quarto-figure-center anchored" width="672">
+<div id="fig-tail" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-tail-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="controls_files/figure-html/fig-tail-1.png" id="fig-tail" class="img-fluid figure-img" width="672">
+<img src="controls_files/figure-html/fig-tail-1.png" class="img-fluid figure-img" width="672">
 </div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig quarto-uncaptioned" id="fig-tail-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;1
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-tail-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Pooled single-year loss. Error bars: 95% percentile bootstrap over the 200 databases.
 </figcaption>
 </figure>
 </div>
@@ -1306,30 +1343,34 @@ Figure&nbsp;2
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>be<span class="sc">$</span>break_even <span class="sc">|&gt;</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Control =</span> ctl_lab[control], <span class="st">`</span><span class="at">Break-even effectiveness</span><span class="st">`</span> <span class="ot">=</span> break_even_scale) <span class="sc">|&gt;</span></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(Control, <span class="st">`</span><span class="at">Break-even effectiveness</span><span class="st">`</span>) <span class="sc">|&gt;</span></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  gt<span class="sc">::</span><span class="fu">gt</span>() <span class="sc">|&gt;</span></span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  gt<span class="sc">::</span><span class="fu">fmt_percent</span>(<span class="st">`</span><span class="at">Break-even effectiveness</span><span class="st">`</span>, <span class="at">decimals =</span> <span class="dv">0</span>) <span class="sc">|&gt;</span></span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  gt<span class="sc">::</span><span class="fu">sub_missing</span>(<span class="at">missing_text =</span> <span class="st">"not reached on grid"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">control =</span> <span class="fu">factor</span>(control, <span class="at">levels =</span> <span class="fu">names</span>(ctl_lab))) <span class="sc">|&gt;</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(control) <span class="sc">|&gt;</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(ctl <span class="sc">|&gt;</span> <span class="fu">select</span>(<span class="at">control =</span> arm, mean_saving_per_year, annual_cost) <span class="sc">|&gt;</span> <span class="fu">mutate</span>(<span class="at">control =</span> <span class="fu">factor</span>(control, <span class="at">levels =</span> <span class="fu">names</span>(ctl_lab))), <span class="at">by =</span> <span class="st">"control"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Control =</span> ctl_lab[<span class="fu">as.character</span>(control)]) <span class="sc">|&gt;</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(Control, <span class="st">`</span><span class="at">Break-even effectiveness</span><span class="st">`</span> <span class="ot">=</span> break_even_scale, <span class="st">`</span><span class="at">Assumed annual cost</span><span class="st">`</span> <span class="ot">=</span> annual_cost, <span class="st">`</span><span class="at">Max cost at break-even (full effect)</span><span class="st">`</span> <span class="ot">=</span> mean_saving_per_year) <span class="sc">|&gt;</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  gt<span class="sc">::</span><span class="fu">gt</span>() <span class="sc">|&gt;</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  gt<span class="sc">::</span><span class="fu">fmt_percent</span>(<span class="st">`</span><span class="at">Break-even effectiveness</span><span class="st">`</span>, <span class="at">decimals =</span> <span class="dv">0</span>) <span class="sc">|&gt;</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  gt<span class="sc">::</span><span class="fu">fmt_currency</span>(<span class="fu">c</span>(<span class="st">`</span><span class="at">Assumed annual cost</span><span class="st">`</span>, <span class="st">`</span><span class="at">Max cost at break-even (full effect)</span><span class="st">`</span>), <span class="at">decimals =</span> <span class="dv">0</span>, <span class="at">suffixing =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>  gt<span class="sc">::</span><span class="fu">sub_missing</span>(<span class="at">missing_text =</span> <span class="st">"not reached on grid"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
-<div id="syoxtjyfrj" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#syoxtjyfrj table {
+<div id="iqfdnqgthk" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#iqfdnqgthk table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#syoxtjyfrj thead, #syoxtjyfrj tbody, #syoxtjyfrj tfoot, #syoxtjyfrj tr, #syoxtjyfrj td, #syoxtjyfrj th {
+#iqfdnqgthk thead, #iqfdnqgthk tbody, #iqfdnqgthk tfoot, #iqfdnqgthk tr, #iqfdnqgthk td, #iqfdnqgthk th {
   border-style: none;
 }
 
-#syoxtjyfrj p {
+#iqfdnqgthk p {
   margin: 0;
   padding: 0;
 }
 
-#syoxtjyfrj .gt_table {
+#iqfdnqgthk .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -1355,12 +1396,12 @@ Figure&nbsp;2
   border-left-color: #D3D3D3;
 }
 
-#syoxtjyfrj .gt_caption {
+#iqfdnqgthk .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#syoxtjyfrj .gt_title {
+#iqfdnqgthk .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -1372,7 +1413,7 @@ Figure&nbsp;2
   border-bottom-width: 0;
 }
 
-#syoxtjyfrj .gt_subtitle {
+#iqfdnqgthk .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -1384,7 +1425,7 @@ Figure&nbsp;2
   border-top-width: 0;
 }
 
-#syoxtjyfrj .gt_heading {
+#iqfdnqgthk .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -1396,13 +1437,13 @@ Figure&nbsp;2
   border-right-color: #D3D3D3;
 }
 
-#syoxtjyfrj .gt_bottom_border {
+#iqfdnqgthk .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#syoxtjyfrj .gt_col_headings {
+#iqfdnqgthk .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -1417,7 +1458,7 @@ Figure&nbsp;2
   border-right-color: #D3D3D3;
 }
 
-#syoxtjyfrj .gt_col_heading {
+#iqfdnqgthk .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1437,7 +1478,7 @@ Figure&nbsp;2
   overflow-x: hidden;
 }
 
-#syoxtjyfrj .gt_column_spanner_outer {
+#iqfdnqgthk .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1449,15 +1490,15 @@ Figure&nbsp;2
   padding-right: 4px;
 }
 
-#syoxtjyfrj .gt_column_spanner_outer:first-child {
+#iqfdnqgthk .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#syoxtjyfrj .gt_column_spanner_outer:last-child {
+#iqfdnqgthk .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#syoxtjyfrj .gt_column_spanner {
+#iqfdnqgthk .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -1469,11 +1510,11 @@ Figure&nbsp;2
   width: 100%;
 }
 
-#syoxtjyfrj .gt_spanner_row {
+#iqfdnqgthk .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#syoxtjyfrj .gt_group_heading {
+#iqfdnqgthk .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1499,7 +1540,7 @@ Figure&nbsp;2
   text-align: left;
 }
 
-#syoxtjyfrj .gt_empty_group_heading {
+#iqfdnqgthk .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -1514,15 +1555,15 @@ Figure&nbsp;2
   vertical-align: middle;
 }
 
-#syoxtjyfrj .gt_from_md > :first-child {
+#iqfdnqgthk .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#syoxtjyfrj .gt_from_md > :last-child {
+#iqfdnqgthk .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#syoxtjyfrj .gt_row {
+#iqfdnqgthk .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1541,7 +1582,7 @@ Figure&nbsp;2
   overflow-x: hidden;
 }
 
-#syoxtjyfrj .gt_stub {
+#iqfdnqgthk .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1554,7 +1595,7 @@ Figure&nbsp;2
   padding-right: 5px;
 }
 
-#syoxtjyfrj .gt_stub_row_group {
+#iqfdnqgthk .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1568,15 +1609,15 @@ Figure&nbsp;2
   vertical-align: top;
 }
 
-#syoxtjyfrj .gt_row_group_first td {
+#iqfdnqgthk .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#syoxtjyfrj .gt_row_group_first th {
+#iqfdnqgthk .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#syoxtjyfrj .gt_summary_row {
+#iqfdnqgthk .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -1586,16 +1627,16 @@ Figure&nbsp;2
   padding-right: 5px;
 }
 
-#syoxtjyfrj .gt_first_summary_row {
+#iqfdnqgthk .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-#syoxtjyfrj .gt_first_summary_row.thick {
+#iqfdnqgthk .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#syoxtjyfrj .gt_last_summary_row {
+#iqfdnqgthk .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1605,7 +1646,7 @@ Figure&nbsp;2
   border-bottom-color: #D3D3D3;
 }
 
-#syoxtjyfrj .gt_grand_summary_row {
+#iqfdnqgthk .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -1615,7 +1656,7 @@ Figure&nbsp;2
   padding-right: 5px;
 }
 
-#syoxtjyfrj .gt_first_grand_summary_row {
+#iqfdnqgthk .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1625,7 +1666,7 @@ Figure&nbsp;2
   border-top-color: #D3D3D3;
 }
 
-#syoxtjyfrj .gt_last_grand_summary_row_top {
+#iqfdnqgthk .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1635,11 +1676,11 @@ Figure&nbsp;2
   border-bottom-color: #D3D3D3;
 }
 
-#syoxtjyfrj .gt_striped {
+#iqfdnqgthk .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#syoxtjyfrj .gt_table_body {
+#iqfdnqgthk .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -1648,7 +1689,7 @@ Figure&nbsp;2
   border-bottom-color: #D3D3D3;
 }
 
-#syoxtjyfrj .gt_footnotes {
+#iqfdnqgthk .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1662,7 +1703,7 @@ Figure&nbsp;2
   border-right-color: #D3D3D3;
 }
 
-#syoxtjyfrj .gt_footnote {
+#iqfdnqgthk .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -1671,7 +1712,7 @@ Figure&nbsp;2
   padding-right: 5px;
 }
 
-#syoxtjyfrj .gt_sourcenotes {
+#iqfdnqgthk .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1685,7 +1726,7 @@ Figure&nbsp;2
   border-right-color: #D3D3D3;
 }
 
-#syoxtjyfrj .gt_sourcenote {
+#iqfdnqgthk .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -1693,72 +1734,72 @@ Figure&nbsp;2
   padding-right: 5px;
 }
 
-#syoxtjyfrj .gt_left {
+#iqfdnqgthk .gt_left {
   text-align: left;
 }
 
-#syoxtjyfrj .gt_center {
+#iqfdnqgthk .gt_center {
   text-align: center;
 }
 
-#syoxtjyfrj .gt_right {
+#iqfdnqgthk .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#syoxtjyfrj .gt_font_normal {
+#iqfdnqgthk .gt_font_normal {
   font-weight: normal;
 }
 
-#syoxtjyfrj .gt_font_bold {
+#iqfdnqgthk .gt_font_bold {
   font-weight: bold;
 }
 
-#syoxtjyfrj .gt_font_italic {
+#iqfdnqgthk .gt_font_italic {
   font-style: italic;
 }
 
-#syoxtjyfrj .gt_super {
+#iqfdnqgthk .gt_super {
   font-size: 65%;
 }
 
-#syoxtjyfrj .gt_footnote_marks {
+#iqfdnqgthk .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#syoxtjyfrj .gt_asterisk {
+#iqfdnqgthk .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#syoxtjyfrj .gt_indent_1 {
+#iqfdnqgthk .gt_indent_1 {
   text-indent: 5px;
 }
 
-#syoxtjyfrj .gt_indent_2 {
+#iqfdnqgthk .gt_indent_2 {
   text-indent: 10px;
 }
 
-#syoxtjyfrj .gt_indent_3 {
+#iqfdnqgthk .gt_indent_3 {
   text-indent: 15px;
 }
 
-#syoxtjyfrj .gt_indent_4 {
+#iqfdnqgthk .gt_indent_4 {
   text-indent: 20px;
 }
 
-#syoxtjyfrj .gt_indent_5 {
+#iqfdnqgthk .gt_indent_5 {
   text-indent: 25px;
 }
 
-#syoxtjyfrj .katex-display {
+#iqfdnqgthk .katex-display {
   display: inline-flex !important;
   margin-bottom: 0.75em !important;
 }
 
-#syoxtjyfrj div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+#iqfdnqgthk div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
   height: 0px !important;
 }
 </style>
@@ -1768,16 +1809,22 @@ Figure&nbsp;2
 <tr class="gt_col_headings header">
 <th id="Control" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col">Control</th>
 <th id="Break-even-effectiveness" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Break-even effectiveness</th>
+<th id="Assumed-annual-cost" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Assumed annual cost</th>
+<th id="Max-cost-at-break-even-(full-effect)" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">Max cost at break-even (full effect)</th>
 </tr>
 </thead>
 <tbody class="gt_table_body">
 <tr class="odd">
-<td class="gt_row gt_left" headers="Control">Independent P&amp;L verification</td>
-<td class="gt_row gt_right" headers="Break-even effectiveness">92%</td>
-</tr>
-<tr class="even">
 <td class="gt_row gt_left" headers="Control">Reconciliation automation</td>
 <td class="gt_row gt_right" headers="Break-even effectiveness">77%</td>
+<td class="gt_row gt_right" headers="Assumed annual cost">$400K</td>
+<td class="gt_row gt_right" headers="Max cost at break-even (full effect)">$502K</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="Control">Independent P&amp;L verification</td>
+<td class="gt_row gt_right" headers="Break-even effectiveness">92%</td>
+<td class="gt_row gt_right" headers="Assumed annual cost">$700K</td>
+<td class="gt_row gt_right" headers="Max cost at break-even (full effect)">$735K</td>
 </tr>
 </tbody>
 </table>
@@ -1787,11 +1834,59 @@ Figure&nbsp;2
 </div>
 <p>The band reflects Monte Carlo error only. It does <strong>not</strong> include uncertainty in the cost, the lag shift, or the severity-growth assumption, which are likely larger.</p>
 </section>
+<section id="sec-sensitivity" class="level2">
+<h2 class="anchored" data-anchor-id="sec-sensitivity">Sensitivity to severity growth</h2>
+<p>Every dollar saving on this page flows through the severity-growth parameter <span class="math inline">\(e\)</span>. The study was re-run with <span class="math inline">\(e\)</span> multiplied by 0, 0.5, 1 (as assumed) and 1.5, using the same seeds.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>base_es <span class="ot">&lt;-</span> sens <span class="sc">|&gt;</span> <span class="fu">filter</span>(arm <span class="sc">==</span> <span class="st">"baseline"</span>) <span class="sc">|&gt;</span> <span class="fu">select</span>(e_mult, <span class="at">base_es =</span> annual_es95)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>sens <span class="sc">|&gt;</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(arm <span class="sc">!=</span> <span class="st">"baseline"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(base_es, <span class="at">by =</span> <span class="st">"e_mult"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">transmute</span>(e_mult, <span class="at">Control =</span> ctl_lab[arm], <span class="st">`</span><span class="at">Mean saving / yr</span><span class="st">`</span> <span class="ot">=</span> mean_saving_per_year, <span class="st">`</span><span class="at">ES95 reduction</span><span class="st">`</span> <span class="ot">=</span> base_es <span class="sc">-</span> annual_es95) <span class="sc">|&gt;</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="fu">c</span>(<span class="st">`</span><span class="at">Mean saving / yr</span><span class="st">`</span>, <span class="st">`</span><span class="at">ES95 reduction</span><span class="st">`</span>), <span class="at">names_to =</span> <span class="st">"Measure"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(e_mult, value, <span class="at">colour =</span> Control)) <span class="sc">+</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">0</span>, <span class="at">colour =</span> <span class="st">"grey40"</span>) <span class="sc">+</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">linewidth =</span> <span class="fl">0.9</span>) <span class="sc">+</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>Measure, <span class="at">scales =</span> <span class="st">"free_y"</span>) <span class="sc">+</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_colour_manual</span>(<span class="at">values =</span> <span class="fu">setNames</span>(ctl_col, ctl_lab[<span class="fu">names</span>(ctl_col)]), <span class="at">name =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> fmt_usd) <span class="sc">+</span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Multiplier on severity growth e (0 = losses do not grow while undiscovered)"</span>, <span class="at">y =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_op</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div id="fig-sens" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-sens-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="controls_files/figure-html/fig-sens-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-sens-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: Paired mean saving and ES95 reduction against the multiplier on severity growth e (1 = as assumed).
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>s0 <span class="ot">&lt;-</span> sens <span class="sc">|&gt;</span> <span class="fu">filter</span>(e_mult <span class="sc">==</span> <span class="dv">0</span>, arm <span class="sc">!=</span> <span class="st">"baseline"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<p>With <span class="math inline">\(e = 0\)</span> the paired saving is $0 to $0 a year: any value that is not exactly zero is a simulation artefact (paired runs share event counts and severities, so with <span class="math inline">\(e = 0\)</span> incurred loss should be identical). The tail reduction vanishes in the same way.</p>
+</section>
+<section id="sec-information" class="level2">
+<h2 class="anchored" data-anchor-id="sec-information">Information value</h2>
+<p>The cleanest benefit that does not depend on severity growth is <strong>earlier information</strong>. At the evaluation date, the loss that has already happened but is not yet in the database falls from $12.6M to $6.3M under reconciliation automation and $4.5M under independent P&amp;L verification. A smaller undiscovered balance means the reported loss trend is closer to the true one, and the loss data a firm uses for capital, board reporting or allocator disclosure is less incomplete. This benefit is not converted to dollars here, because its value depends on how the firm uses the data.</p>
+</section>
 <section id="caveats-specific-to-this-page" class="level2">
 <h2 class="anchored" data-anchor-id="caveats-specific-to-this-page">Caveats specific to this page</h2>
 <ul>
-<li>Savings arise only through the assumed link between time undiscovered and loss size. If real losses do not grow while undiscovered, the mean saving is much smaller, and the case rests on tail reduction and information value.</li>
+<li>Incurred loss changes under a control only through the severity-growth term <span class="math inline">\((1 + e \times \text{lag})\)</span>. If losses do not grow while undiscovered (<span class="math inline">\(e = 0\)</span>), <strong>neither the mean nor the tail of incurred loss changes</strong>; the only benefit left is earlier information, shown above as undiscovered loss at year 10.</li>
 <li>Control cost is a single annual figure with no ramp-up, no false-positive workload and no risk of the control failing.</li>
+<li>Losses are gross. Loss-event insurance, recoveries from counterparties and compensation that is later clawed back would reduce net losses and therefore net savings.</li>
 <li>No discounting, no correlation with market stress, and no regulatory or reputational effects are modelled.</li>
 </ul>
 
