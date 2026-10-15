@@ -39,14 +39,16 @@ sims100 <- parallel::mclapply(1:100, \(r) {
 beyond_events <- beyond_window_share(params)
 ```
 
-::: {.callout-note}
-## Read this first
-Everything here comes from a **simulation with assumed parameters**, not from any firm's data. It tests how reserving methods behave when the true answer is known. It does not estimate any real firm's losses.
-:::
+
 
 ## The question
 
 Operational losses such as trade errors, NAV pricing errors and unauthorized trading are often found long after they happen, and the loss database records them when they are found. So recent periods look cleaner than they are. This is the actuarial incurred-but-not-reported (IBNR) problem, and run-off triangles, analysed with the `ChainLadder` R package, are a natural way to estimate what is missing. Losses are booked in full when discovered, so this is a pure IBNR problem: it does not model later development on events already known (provisions, recoveries, insurance; see [Limitations](reproducibility.qmd#sec-limitations)).
+
+::: {.callout-note}
+## Read this first
+Everything here comes from a **simulation with assumed parameters**, not from any firm's data. It tests how reserving methods behave when the true answer is known. It does not estimate any real firm's losses.
+:::
 
 ## What we found (under the assumed generator)
 
