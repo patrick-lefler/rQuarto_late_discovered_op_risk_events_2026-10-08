@@ -11,18 +11,25 @@ project:
 
 website:
   title: "Late-Discovered Operational Risk Events"
-  navbar:
-    left:
+  search: false
+  page-navigation: true
+  sidebar:
+    style: floating
+    contents:
       - {href: index.qmd, text: Overview}
       - {href: data.qmd, text: Synthetic Data}
       - {href: results.qmd, text: Results}
       - {href: controls.qmd, text: Control Value}
       - {href: reproducibility.qmd, text: "Reproducibility & Limitations"}
       - {href: ml-appendix.qmd, text: "ML appendix"}
-
+page-footer:
+left:  Rendered with [Quarto](https://quarto.org) and R.
+right:
+  - text: "Source code"
+    href: https://github.com/patrick-lefler/https://github.com/patrick-lefler/rQuarto_late_discovered_op_risk_events_2026-10-08
 format:
   html:
-    theme: cosmo
+    theme: [cosmo, theme.scss]
     toc: true
     code-fold: true
 

@@ -69,8 +69,8 @@ Seeds depend on the replication number, the scenario index and the event-type in
 
 Every simulator parameter lives in one file. `status: assumption` marks values that are plausible choices, not calibrated estimates.
 
-::: {.callout-note collapse="true"}
-## params.yaml (click to expand)
+::: {.callout-note icon = false collapse="true"}
+## params.yaml information
 
 ```{r}
 #| label: params-yaml
@@ -203,3 +203,14 @@ This project tests how estimation methods behave on **data we generated**. That 
 ### Use of the results
 
 The numbers on this site are illustrations of method behaviour. They should not be quoted as estimates of any firm's undiscovered losses or as a benchmark for the value of a particular control.
+
+## Session Information
+
+::: {.callout-note icon = false collapse="true"}
+## Full R session information
+```{r}
+#| label: session-information
+#| echo: false
+utils::sessionInfo()
+```
+:::
