@@ -60,11 +60,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <script src="site_libs/quarto-nav/quarto-nav.js"></script>
 <script src="site_libs/quarto-nav/headroom.min.js"></script>
+<link href="./ml-appendix.html" rel="next">
+<link href="./controls.html" rel="prev">
 <script src="site_libs/clipboard/clipboard.min.js"></script>
-<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
-<script src="site_libs/quarto-search/fuse.min.js"></script>
-<script src="site_libs/quarto-search/quarto-search.js"></script>
-<meta name="quarto:offset" content="./">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
 <script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script>
@@ -75,20 +73,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-587c61ba64f3a5504c4d52d930310e48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-5b4ad623e5705c0698d39aec6f10cf02.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-27a998fbd444cbea4325d855b637c53e.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
-  "location": "navbar",
-  "copy-button": false,
-  "collapse-after": 3,
-  "panel-placement": "end",
-  "type": "overlay",
-  "limit": 50,
-  "keyboard-shortcut": [
-    "f",
-    "/",
-    "s"
-  ],
-  "show-item-context": false,
   "language": {
     "search-no-results-text": "No results",
     "search-matching-documents-text": "matching documents",
@@ -136,57 +122,72 @@ window.Quarto = {
 
 </head>
 
-<body class="nav-fixed quarto-light">
+<body class="nav-sidebar floating quarto-light">
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top">
-    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
-      <div class="navbar-container container-fluid">
-      <div class="navbar-brand-container mx-auto">
-    <a class="navbar-brand" href="./index.html">
-    <span class="navbar-title">Late-Discovered Operational Risk Events</span>
-    </a>
-  </div>
-            <div id="quarto-search" class="" title="Search"></div>
-          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
-  <span class="navbar-toggler-icon"></span>
-</button>
-          <div class="collapse navbar-collapse" id="navbarCollapse">
-            <ul class="navbar-nav navbar-nav-scroll me-auto">
-  <li class="nav-item">
-    <a class="nav-link" href="./index.html"> 
-<span class="menu-text">Overview</span></a>
-  </li>  
-  <li class="nav-item">
-    <a class="nav-link" href="./data.html"> 
-<span class="menu-text">Synthetic Data</span></a>
-  </li>  
-  <li class="nav-item">
-    <a class="nav-link" href="./results.html"> 
-<span class="menu-text">Results</span></a>
-  </li>  
-  <li class="nav-item">
-    <a class="nav-link" href="./controls.html"> 
-<span class="menu-text">Control Value</span></a>
-  </li>  
-  <li class="nav-item">
-    <a class="nav-link active" href="./reproducibility.html" aria-current="page"> 
-<span class="menu-text">Reproducibility &amp; Limitations</span></a>
-  </li>  
-  <li class="nav-item">
-    <a class="nav-link" href="./ml-appendix.html"> 
-<span class="menu-text">ML appendix</span></a>
-  </li>  
-</ul>
-          </div> <!-- /navcollapse -->
-            <div class="quarto-navbar-tools">
-</div>
-      </div> <!-- /container-fluid -->
-    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./reproducibility.html">Reproducibility &amp; Limitations</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
 </header>
 <!-- content -->
-<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
 <!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="./">Late-Discovered Operational Risk Events</a> 
+    </div>
+      </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Overview</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./data.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Synthetic Data</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./results.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Results</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./controls.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Control Value</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./reproducibility.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Reproducibility &amp; Limitations</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ml-appendix.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ML appendix</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
         <nav id="TOC" role="doc-toc" class="toc-active">
@@ -208,6 +209,7 @@ window.Quarto = {
   <li><a href="#what-client-data-would-replace-each-assumption" id="toc-what-client-data-would-replace-each-assumption" class="nav-link" data-scroll-target="#what-client-data-would-replace-each-assumption">What client data would replace each assumption</a></li>
   <li><a href="#use-of-the-results" id="toc-use-of-the-results" class="nav-link" data-scroll-target="#use-of-the-results">Use of the results</a></li>
   </ul></li>
+  <li><a href="#session-information" id="toc-session-information" class="nav-link" data-scroll-target="#session-information">Session Information</a></li>
   </ul>
 </nav>
     </div>
@@ -254,23 +256,23 @@ window.Quarto = {
 <span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span> gt<span class="sc">::</span><span class="fu">gt</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
-<div id="mppimgxcyw" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#mppimgxcyw table {
+<div id="eucqplfvte" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#eucqplfvte table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#mppimgxcyw thead, #mppimgxcyw tbody, #mppimgxcyw tfoot, #mppimgxcyw tr, #mppimgxcyw td, #mppimgxcyw th {
+#eucqplfvte thead, #eucqplfvte tbody, #eucqplfvte tfoot, #eucqplfvte tr, #eucqplfvte td, #eucqplfvte th {
   border-style: none;
 }
 
-#mppimgxcyw p {
+#eucqplfvte p {
   margin: 0;
   padding: 0;
 }
 
-#mppimgxcyw .gt_table {
+#eucqplfvte .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -296,12 +298,12 @@ window.Quarto = {
   border-left-color: #D3D3D3;
 }
 
-#mppimgxcyw .gt_caption {
+#eucqplfvte .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#mppimgxcyw .gt_title {
+#eucqplfvte .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -313,7 +315,7 @@ window.Quarto = {
   border-bottom-width: 0;
 }
 
-#mppimgxcyw .gt_subtitle {
+#eucqplfvte .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -325,7 +327,7 @@ window.Quarto = {
   border-top-width: 0;
 }
 
-#mppimgxcyw .gt_heading {
+#eucqplfvte .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -337,13 +339,13 @@ window.Quarto = {
   border-right-color: #D3D3D3;
 }
 
-#mppimgxcyw .gt_bottom_border {
+#eucqplfvte .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#mppimgxcyw .gt_col_headings {
+#eucqplfvte .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -358,7 +360,7 @@ window.Quarto = {
   border-right-color: #D3D3D3;
 }
 
-#mppimgxcyw .gt_col_heading {
+#eucqplfvte .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -378,7 +380,7 @@ window.Quarto = {
   overflow-x: hidden;
 }
 
-#mppimgxcyw .gt_column_spanner_outer {
+#eucqplfvte .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -390,15 +392,15 @@ window.Quarto = {
   padding-right: 4px;
 }
 
-#mppimgxcyw .gt_column_spanner_outer:first-child {
+#eucqplfvte .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#mppimgxcyw .gt_column_spanner_outer:last-child {
+#eucqplfvte .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#mppimgxcyw .gt_column_spanner {
+#eucqplfvte .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -410,11 +412,11 @@ window.Quarto = {
   width: 100%;
 }
 
-#mppimgxcyw .gt_spanner_row {
+#eucqplfvte .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#mppimgxcyw .gt_group_heading {
+#eucqplfvte .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -440,7 +442,7 @@ window.Quarto = {
   text-align: left;
 }
 
-#mppimgxcyw .gt_empty_group_heading {
+#eucqplfvte .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -455,15 +457,15 @@ window.Quarto = {
   vertical-align: middle;
 }
 
-#mppimgxcyw .gt_from_md > :first-child {
+#eucqplfvte .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#mppimgxcyw .gt_from_md > :last-child {
+#eucqplfvte .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#mppimgxcyw .gt_row {
+#eucqplfvte .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -482,7 +484,7 @@ window.Quarto = {
   overflow-x: hidden;
 }
 
-#mppimgxcyw .gt_stub {
+#eucqplfvte .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -495,7 +497,7 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#mppimgxcyw .gt_stub_row_group {
+#eucqplfvte .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -509,15 +511,15 @@ window.Quarto = {
   vertical-align: top;
 }
 
-#mppimgxcyw .gt_row_group_first td {
+#eucqplfvte .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#mppimgxcyw .gt_row_group_first th {
+#eucqplfvte .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#mppimgxcyw .gt_summary_row {
+#eucqplfvte .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -527,16 +529,16 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#mppimgxcyw .gt_first_summary_row {
+#eucqplfvte .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-#mppimgxcyw .gt_first_summary_row.thick {
+#eucqplfvte .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#mppimgxcyw .gt_last_summary_row {
+#eucqplfvte .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -546,7 +548,7 @@ window.Quarto = {
   border-bottom-color: #D3D3D3;
 }
 
-#mppimgxcyw .gt_grand_summary_row {
+#eucqplfvte .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -556,7 +558,7 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#mppimgxcyw .gt_first_grand_summary_row {
+#eucqplfvte .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -566,7 +568,7 @@ window.Quarto = {
   border-top-color: #D3D3D3;
 }
 
-#mppimgxcyw .gt_last_grand_summary_row_top {
+#eucqplfvte .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -576,11 +578,11 @@ window.Quarto = {
   border-bottom-color: #D3D3D3;
 }
 
-#mppimgxcyw .gt_striped {
+#eucqplfvte .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#mppimgxcyw .gt_table_body {
+#eucqplfvte .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -589,7 +591,7 @@ window.Quarto = {
   border-bottom-color: #D3D3D3;
 }
 
-#mppimgxcyw .gt_footnotes {
+#eucqplfvte .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -603,7 +605,7 @@ window.Quarto = {
   border-right-color: #D3D3D3;
 }
 
-#mppimgxcyw .gt_footnote {
+#eucqplfvte .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -612,7 +614,7 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#mppimgxcyw .gt_sourcenotes {
+#eucqplfvte .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -626,7 +628,7 @@ window.Quarto = {
   border-right-color: #D3D3D3;
 }
 
-#mppimgxcyw .gt_sourcenote {
+#eucqplfvte .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -634,72 +636,72 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#mppimgxcyw .gt_left {
+#eucqplfvte .gt_left {
   text-align: left;
 }
 
-#mppimgxcyw .gt_center {
+#eucqplfvte .gt_center {
   text-align: center;
 }
 
-#mppimgxcyw .gt_right {
+#eucqplfvte .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#mppimgxcyw .gt_font_normal {
+#eucqplfvte .gt_font_normal {
   font-weight: normal;
 }
 
-#mppimgxcyw .gt_font_bold {
+#eucqplfvte .gt_font_bold {
   font-weight: bold;
 }
 
-#mppimgxcyw .gt_font_italic {
+#eucqplfvte .gt_font_italic {
   font-style: italic;
 }
 
-#mppimgxcyw .gt_super {
+#eucqplfvte .gt_super {
   font-size: 65%;
 }
 
-#mppimgxcyw .gt_footnote_marks {
+#eucqplfvte .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#mppimgxcyw .gt_asterisk {
+#eucqplfvte .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#mppimgxcyw .gt_indent_1 {
+#eucqplfvte .gt_indent_1 {
   text-indent: 5px;
 }
 
-#mppimgxcyw .gt_indent_2 {
+#eucqplfvte .gt_indent_2 {
   text-indent: 10px;
 }
 
-#mppimgxcyw .gt_indent_3 {
+#eucqplfvte .gt_indent_3 {
   text-indent: 15px;
 }
 
-#mppimgxcyw .gt_indent_4 {
+#eucqplfvte .gt_indent_4 {
   text-indent: 20px;
 }
 
-#mppimgxcyw .gt_indent_5 {
+#eucqplfvte .gt_indent_5 {
   text-indent: 25px;
 }
 
-#mppimgxcyw .katex-display {
+#eucqplfvte .katex-display {
   display: inline-flex !important;
   margin-bottom: 0.75em !important;
 }
 
-#mppimgxcyw div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+#eucqplfvte div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
   height: 0px !important;
 }
 </style>
@@ -714,11 +716,11 @@ window.Quarto = {
 <tbody class="gt_table_body">
 <tr class="odd">
 <td class="gt_row gt_left" headers="Item">Rendered</td>
-<td class="gt_row gt_left" headers="Value">2026-10-15 13:05 EDT</td>
+<td class="gt_row gt_left" headers="Value">2026-11-12 21:38 EST</td>
 </tr>
 <tr class="even">
 <td class="gt_row gt_left" headers="Item">Project git commit</td>
-<td class="gt_row gt_left" headers="Value">d878e5f (uncommitted changes)</td>
+<td class="gt_row gt_left" headers="Value">8268431 (uncommitted changes)</td>
 </tr>
 <tr class="odd">
 <td class="gt_row gt_left" headers="Item">R</td>
@@ -779,13 +781,13 @@ window.Quarto = {
 <section id="parameters" class="level2">
 <h2 class="anchored" data-anchor-id="parameters">Parameters</h2>
 <p>Every simulator parameter lives in one file. <code>status: assumption</code> marks values that are plausible choices, not calibrated estimates.</p>
-<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout callout-style-default callout-note no-icon callout-titled">
 <div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
-<i class="callout-icon"></i>
+<i class="callout-icon no-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>params.yaml (click to expand)
+<span class="screen-reader-only">Note</span>params.yaml information
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
@@ -918,23 +920,23 @@ window.Quarto = {
 <span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>})) <span class="sc">|&gt;</span> gt<span class="sc">::</span><span class="fu">gt</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
-<div id="vnazdhpssm" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#vnazdhpssm table {
+<div id="pduhrweuac" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#pduhrweuac table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#vnazdhpssm thead, #vnazdhpssm tbody, #vnazdhpssm tfoot, #vnazdhpssm tr, #vnazdhpssm td, #vnazdhpssm th {
+#pduhrweuac thead, #pduhrweuac tbody, #pduhrweuac tfoot, #pduhrweuac tr, #pduhrweuac td, #pduhrweuac th {
   border-style: none;
 }
 
-#vnazdhpssm p {
+#pduhrweuac p {
   margin: 0;
   padding: 0;
 }
 
-#vnazdhpssm .gt_table {
+#pduhrweuac .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -960,12 +962,12 @@ window.Quarto = {
   border-left-color: #D3D3D3;
 }
 
-#vnazdhpssm .gt_caption {
+#pduhrweuac .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#vnazdhpssm .gt_title {
+#pduhrweuac .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -977,7 +979,7 @@ window.Quarto = {
   border-bottom-width: 0;
 }
 
-#vnazdhpssm .gt_subtitle {
+#pduhrweuac .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -989,7 +991,7 @@ window.Quarto = {
   border-top-width: 0;
 }
 
-#vnazdhpssm .gt_heading {
+#pduhrweuac .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -1001,13 +1003,13 @@ window.Quarto = {
   border-right-color: #D3D3D3;
 }
 
-#vnazdhpssm .gt_bottom_border {
+#pduhrweuac .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#vnazdhpssm .gt_col_headings {
+#pduhrweuac .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -1022,7 +1024,7 @@ window.Quarto = {
   border-right-color: #D3D3D3;
 }
 
-#vnazdhpssm .gt_col_heading {
+#pduhrweuac .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1042,7 +1044,7 @@ window.Quarto = {
   overflow-x: hidden;
 }
 
-#vnazdhpssm .gt_column_spanner_outer {
+#pduhrweuac .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1054,15 +1056,15 @@ window.Quarto = {
   padding-right: 4px;
 }
 
-#vnazdhpssm .gt_column_spanner_outer:first-child {
+#pduhrweuac .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#vnazdhpssm .gt_column_spanner_outer:last-child {
+#pduhrweuac .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#vnazdhpssm .gt_column_spanner {
+#pduhrweuac .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -1074,11 +1076,11 @@ window.Quarto = {
   width: 100%;
 }
 
-#vnazdhpssm .gt_spanner_row {
+#pduhrweuac .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#vnazdhpssm .gt_group_heading {
+#pduhrweuac .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1104,7 +1106,7 @@ window.Quarto = {
   text-align: left;
 }
 
-#vnazdhpssm .gt_empty_group_heading {
+#pduhrweuac .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -1119,15 +1121,15 @@ window.Quarto = {
   vertical-align: middle;
 }
 
-#vnazdhpssm .gt_from_md > :first-child {
+#pduhrweuac .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#vnazdhpssm .gt_from_md > :last-child {
+#pduhrweuac .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#vnazdhpssm .gt_row {
+#pduhrweuac .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1146,7 +1148,7 @@ window.Quarto = {
   overflow-x: hidden;
 }
 
-#vnazdhpssm .gt_stub {
+#pduhrweuac .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1159,7 +1161,7 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#vnazdhpssm .gt_stub_row_group {
+#pduhrweuac .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1173,15 +1175,15 @@ window.Quarto = {
   vertical-align: top;
 }
 
-#vnazdhpssm .gt_row_group_first td {
+#pduhrweuac .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#vnazdhpssm .gt_row_group_first th {
+#pduhrweuac .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#vnazdhpssm .gt_summary_row {
+#pduhrweuac .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -1191,16 +1193,16 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#vnazdhpssm .gt_first_summary_row {
+#pduhrweuac .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-#vnazdhpssm .gt_first_summary_row.thick {
+#pduhrweuac .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#vnazdhpssm .gt_last_summary_row {
+#pduhrweuac .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1210,7 +1212,7 @@ window.Quarto = {
   border-bottom-color: #D3D3D3;
 }
 
-#vnazdhpssm .gt_grand_summary_row {
+#pduhrweuac .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -1220,7 +1222,7 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#vnazdhpssm .gt_first_grand_summary_row {
+#pduhrweuac .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1230,7 +1232,7 @@ window.Quarto = {
   border-top-color: #D3D3D3;
 }
 
-#vnazdhpssm .gt_last_grand_summary_row_top {
+#pduhrweuac .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1240,11 +1242,11 @@ window.Quarto = {
   border-bottom-color: #D3D3D3;
 }
 
-#vnazdhpssm .gt_striped {
+#pduhrweuac .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#vnazdhpssm .gt_table_body {
+#pduhrweuac .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -1253,7 +1255,7 @@ window.Quarto = {
   border-bottom-color: #D3D3D3;
 }
 
-#vnazdhpssm .gt_footnotes {
+#pduhrweuac .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1267,7 +1269,7 @@ window.Quarto = {
   border-right-color: #D3D3D3;
 }
 
-#vnazdhpssm .gt_footnote {
+#pduhrweuac .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -1276,7 +1278,7 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#vnazdhpssm .gt_sourcenotes {
+#pduhrweuac .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1290,7 +1292,7 @@ window.Quarto = {
   border-right-color: #D3D3D3;
 }
 
-#vnazdhpssm .gt_sourcenote {
+#pduhrweuac .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -1298,72 +1300,72 @@ window.Quarto = {
   padding-right: 5px;
 }
 
-#vnazdhpssm .gt_left {
+#pduhrweuac .gt_left {
   text-align: left;
 }
 
-#vnazdhpssm .gt_center {
+#pduhrweuac .gt_center {
   text-align: center;
 }
 
-#vnazdhpssm .gt_right {
+#pduhrweuac .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#vnazdhpssm .gt_font_normal {
+#pduhrweuac .gt_font_normal {
   font-weight: normal;
 }
 
-#vnazdhpssm .gt_font_bold {
+#pduhrweuac .gt_font_bold {
   font-weight: bold;
 }
 
-#vnazdhpssm .gt_font_italic {
+#pduhrweuac .gt_font_italic {
   font-style: italic;
 }
 
-#vnazdhpssm .gt_super {
+#pduhrweuac .gt_super {
   font-size: 65%;
 }
 
-#vnazdhpssm .gt_footnote_marks {
+#pduhrweuac .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#vnazdhpssm .gt_asterisk {
+#pduhrweuac .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#vnazdhpssm .gt_indent_1 {
+#pduhrweuac .gt_indent_1 {
   text-indent: 5px;
 }
 
-#vnazdhpssm .gt_indent_2 {
+#pduhrweuac .gt_indent_2 {
   text-indent: 10px;
 }
 
-#vnazdhpssm .gt_indent_3 {
+#pduhrweuac .gt_indent_3 {
   text-indent: 15px;
 }
 
-#vnazdhpssm .gt_indent_4 {
+#pduhrweuac .gt_indent_4 {
   text-indent: 20px;
 }
 
-#vnazdhpssm .gt_indent_5 {
+#pduhrweuac .gt_indent_5 {
   text-indent: 25px;
 }
 
-#vnazdhpssm .katex-display {
+#pduhrweuac .katex-display {
   display: inline-flex !important;
   margin-bottom: 0.75em !important;
 }
 
-#vnazdhpssm div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+#pduhrweuac div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
   height: 0px !important;
 }
 </style>
@@ -2094,9 +2096,73 @@ window.Quarto = {
 <section id="use-of-the-results" class="level3">
 <h3 class="anchored" data-anchor-id="use-of-the-results">Use of the results</h3>
 <p>The numbers on this site are illustrations of method behaviour. They should not be quoted as estimates of any firm’s undiscovered losses or as a benchmark for the value of a particular control.</p>
-
-
 </section>
+</section>
+<section id="session-information" class="level2">
+<h2 class="anchored" data-anchor-id="session-information">Session Information</h2>
+<div class="callout callout-style-default callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Full R session information
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-2" class="callout-2-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>R version 4.5.2 (2025-10-31)
+Platform: aarch64-apple-darwin20
+Running under: macOS Tahoe 26.6.2
+
+Matrix products: default
+BLAS:   /System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBLAS.dylib 
+LAPACK: /Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/lib/libRlapack.dylib;  LAPACK version 3.12.1
+
+locale:
+[1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+
+time zone: America/New_York
+tzcode source: internal
+
+attached base packages:
+[1] stats     graphics  grDevices datasets  utils     methods   base     
+
+other attached packages:
+ [1] testthat_3.3.2  lubridate_1.9.4 forcats_1.0.1   stringr_1.6.0  
+ [5] dplyr_1.2.1     purrr_1.2.2     readr_2.1.5     tidyr_1.3.1    
+ [9] tibble_3.3.1    ggplot2_4.0.3   tidyverse_2.0.0
+
+loaded via a namespace (and not attached):
+ [1] tidyselect_1.2.1   farver_2.1.2       S7_0.2.2           fastmap_1.2.0     
+ [5] digest_0.6.39      timechange_0.3.0   lifecycle_1.0.5    waldo_0.6.2       
+ [9] statmod_1.5.1      magrittr_2.0.5     compiler_4.5.2     ChainLadder_0.2.21
+[13] rlang_1.3.0        sass_0.4.10        tools_4.5.2        yaml_2.3.10       
+[17] gt_1.3.0           knitr_1.50         htmlwidgets_1.6.4  plyr_1.8.9        
+[21] xml2_1.4.1         RColorBrewer_1.1-3 pkgload_1.5.3      abind_1.4-8       
+[25] cplm_0.7-12.1      withr_3.0.3        desc_1.4.3         grid_4.5.2        
+[29] stats4_4.5.2       scales_1.4.0       MASS_7.3-65        cli_3.6.6         
+[33] rmarkdown_2.30     generics_0.1.4     otel_0.2.0         rstudioapi_0.19.0 
+[37] biglm_0.9-3        reshape2_1.4.5     actuar_3.3-7       tzdb_0.5.0        
+[41] minqa_1.2.8        DBI_1.2.3          splines_4.5.2      parallel_4.5.2    
+[45] vctrs_0.7.3        Matrix_1.7-4       sandwich_3.1-1     jsonlite_2.0.0    
+[49] carData_3.0-5      car_3.1-3          hms_1.1.4          Formula_1.2-5     
+[53] systemfit_1.1-30   tweedie_3.1.0      glue_1.8.1         stringi_1.8.7     
+[57] gtable_0.3.6       lmtest_0.9-40      pillar_1.11.1      htmltools_0.5.9   
+[61] brio_1.1.5         expint_0.2-1       R6_2.6.1           rprojroot_2.1.1   
+[65] evaluate_1.0.5     lattice_0.22-7     renv_1.1.5         Rcpp_1.1.2        
+[69] coda_0.19-4.1      nlme_3.1-168       xfun_0.54          fs_2.1.0          
+[73] zoo_1.8-14         pkgconfig_2.0.3   </code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+
 </section>
 
 </main> <!-- /main -->
@@ -2500,6 +2566,18 @@ window.Quarto = {
     }
   });
   </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./controls.html" class="pagination-link" aria-label="Control Value">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Control Value</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./ml-appendix.html" class="pagination-link" aria-label="ML appendix">
+        <span class="nav-page-text">ML appendix</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
 </div> <!-- /content -->
 
 

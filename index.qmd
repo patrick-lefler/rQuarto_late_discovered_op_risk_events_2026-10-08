@@ -3,6 +3,8 @@ title: "Late-Discovered Operational Risk Events"
 subtitle: "How much loss has already happened but not yet been recorded?"
 execute:
   echo: false
+author: "Patrick Lefler"
+date: October 8, 2026
 ---
 
 ```{r}

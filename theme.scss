@@ -1,0 +1,28 @@
+/*-- scss:defaults --*/
+$font-family-sans-serif: "Helvetica Neue", Helvetica, Arial, sans-serif;
+$body-color: #222;
+$link-color: #1b5e8c;
+
+/*-- scss:rules --*/
+h1, h2, h3 { font-weight: 600; }
+.callout { margin-top: 1rem; }
+
+/* Tables: wrap text, and scroll inside the table rather than the page */
+main table { display: block; max-width: 100%; overflow-x: auto; }
+main table td, main table th { white-space: normal; vertical-align: top; }
+@media (max-width: 600px) {
+  main table { font-size: 0.8rem; }
+  main table td, main table th { padding: 0.3rem 0.4rem; }
+}
+
+/* Hide the sidebar header (site title link); page links stay */
+#quarto-sidebar .sidebar-header { display: none; }
+
+/* Heading above the left page links, styled like the right-hand "On this page" */
+#quarto-sidebar .sidebar-menu-container::before {
+  content: "In this project";
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin: 0.3rem 0 0.4rem;
+}
